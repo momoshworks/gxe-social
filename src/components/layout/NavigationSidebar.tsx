@@ -9,6 +9,7 @@ import {
   Feather,
   LogIn,
   LogOut,
+  Smartphone,
 } from 'lucide-react';
 import type { User } from '../../types';
 import logoImg from '../../assets/logo.png';
@@ -99,6 +100,17 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <Feather className="w-6 h-6 xl:hidden" />
           <span className="hidden xl:inline text-lg">نشر في GXE</span>
         </button>
+
+        {/* Direct Download Android APK */}
+        <a
+          href="./GXE-Social.apk"
+          download="GXE-Social.apk"
+          className="mt-2 flex items-center justify-center gap-2.5 w-full p-2.5 bg-[#16181c] hover:bg-[#1f2227] border border-[#2f3336] hover:border-[#00ba7c]/50 text-[#e7e9ea] rounded-full text-xs font-medium transition-all group"
+          title="تحميل تطبيق أندرويد APK"
+        >
+          <Smartphone className="w-4 h-4 text-[#00ba7c] group-hover:scale-110 transition-transform" />
+          <span className="hidden xl:inline text-xs">تحميل تطبيق أندرويد (APK)</span>
+        </a>
       </div>
 
       {/* Bottom User Account Pill & Login/Register */}

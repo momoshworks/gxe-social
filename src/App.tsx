@@ -24,7 +24,7 @@ import { CloudSettingsModal } from './components/modals/CloudSettingsModal';
 import { AuthModal } from './components/modals/AuthModal';
 import { Toast, type ToastMessage } from './components/common/Toast';
 import { PwaUpdatePrompt } from './components/common/PwaUpdatePrompt';
-import { Home, Hash, Bell, Mail, Feather, User as UserIcon, LogIn, LogOut } from 'lucide-react';
+import { Home, Hash, Bell, Mail, Feather, User as UserIcon, LogIn, LogOut, Download } from 'lucide-react';
 import logoImg from './assets/logo.png';
 
 export const App: React.FC = () => {
@@ -293,6 +293,17 @@ export const App: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Direct Android APK download */}
+          <a
+            href="./GXE-Social.apk"
+            download="GXE-Social.apk"
+            className="flex items-center gap-1 bg-[#00ba7c]/15 hover:bg-[#00ba7c]/25 border border-[#00ba7c]/40 text-[#00ba7c] text-xs font-bold px-2.5 py-1.5 rounded-full transition-all"
+            title="تحميل تطبيق أندرويد APK"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>APK</span>
+          </a>
+
           {currentUser.email ? (
             <div className="flex items-center gap-2">
               <button
