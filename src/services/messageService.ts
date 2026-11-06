@@ -6,6 +6,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { DirectMessage, User } from '../types';
+import { addNotification } from './dbService';
 
 const BROADCAST_MSG_CHANNEL = 'gxe_messages_realtime_v2';
 
@@ -59,11 +60,12 @@ export function setLocalChatMessages(chatId: string, messages: DirectMessage[]) 
  * Saves to Firestore subcollection chats/{chatId}/messages for zero-index real-time sync
  */
 export async function sendDirectMessage(
-  senderId: string,
+  sender: User | string,
   receiverId: string,
   text: string,
   mediaUrl?: string
 ): Promise<DirectMessage> {
+  const senderId = typeof sender === 'string' ? sender : sender.id;
   const chatId = getChatId(senderId, receiverId);
   const now = Date.now();
 
@@ -96,7 +98,7 @@ export async function sendDirectMessage(
     } catch (err: any) {
       console.warn('Firestore direct message save error:', err);
       if (err?.code === 'permission-denied') {
-        throw new Error('قواعد حماية Firestore مقفلة (allow read, write: if false;). يرجى تغييرها إلى if true; في لوحة تحكم Firebase.');
+        throw new Error('قواعد حماية Firestore مقفلة (allow read, write: if false;). يرجى نسخ قواعد الحماية ونشرها في Firebase Console.');
       }
     }
   }
@@ -113,6 +115,33 @@ export async function sendDirectMessage(
       chatId,
       message: newMsg,
     });
+  }
+
+  // Trigger push/in-app notification for the recipient!
+  try {
+    const senderUser: User = typeof sender === 'string'
+      ? {
+          id: sender,
+          name: 'عضو في GXE',
+          username: 'user',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + sender,
+          bio: '',
+          createdAt: Date.now(),
+          following: [],
+          followers: [],
+          followingCount: 0,
+          followersCount: 0,
+        }
+      : sender;
+
+    await addNotification({
+      recipientId: receiverId,
+      sender: senderUser,
+      type: 'message',
+      postContent: text.trim() || '📷 أرسل لك صورة أو ملف',
+    });
+  } catch (notifErr) {
+    console.warn('Could not dispatch message notification:', notifErr);
   }
 
   return newMsg;

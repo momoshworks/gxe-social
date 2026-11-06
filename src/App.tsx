@@ -40,6 +40,7 @@ export const App: React.FC = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const prevNotifsCountRef = useRef<number>(0);
+  const prevPostsCountRef = useRef<number>(0);
 
   // Modals state
   const [lightboxData, setLightboxData] = useState<{
@@ -83,28 +84,109 @@ export const App: React.FC = () => {
     return () => unsub();
   }, [currentUser.id]);
 
-  // Subscribe to real-time posts from ALL users across the platform
+  // Subscribe to real-time posts from ALL users across the platform + notify when followed users post
   useEffect(() => {
     const unsubscribe = subscribeToPosts((updatedPosts) => {
+      // If a followed user published a new post
+      if (prevPostsCountRef.current > 0 && updatedPosts.length > prevPostsCountRef.current) {
+        const latestPost = updatedPosts[0];
+        if (
+          latestPost &&
+          latestPost.author.id !== currentUser.id &&
+          (currentUser.following || []).includes(latestPost.author.id)
+        ) {
+          playNotificationSound();
+          showBrowserNotification(`📢 ${latestPost.author.name} نشر تغريدة جديدة`, {
+            body: latestPost.content.substring(0, 90),
+            icon: latestPost.author.avatar,
+            tag: `gxe-post-${latestPost.id}`,
+            data: { tab: 'home', postId: latestPost.id },
+          });
+        }
+      }
+      prevPostsCountRef.current = updatedPosts.length;
       setPosts(updatedPosts);
     });
     return () => unsubscribe();
-  }, []);
+  }, [currentUser.following, currentUser.id]);
 
-  // Subscribe to real-time Notifications for current user
+  // Subscribe to real-time Notifications for current user with WhatsApp-style push outside browser
   useEffect(() => {
     if (!currentUser.id) return;
     const unsub = subscribeToNotifications(currentUser.id, (loadedNotifs) => {
       // If new unread notification arrived
-      if (loadedNotifs.length > prevNotifsCountRef.current && loadedNotifs[0] && !loadedNotifs[0].read) {
-        playNotificationSound();
-        showBrowserNotification('GXE إشعار جديد', `${loadedNotifs[0].sender.name} تفاعل مع حسابك!`);
+      if (loadedNotifs.length > prevNotifsCountRef.current) {
+        const newest = loadedNotifs[0];
+        if (newest && !newest.read) {
+          playNotificationSound();
+
+          let notifTitle = `منصة GXE: ${newest.sender.name}`;
+          let notifBody = `${newest.sender.name} أرسل إشعاراً جديداً`;
+          let notifTab = 'notifications';
+
+          switch (newest.type) {
+            case 'message':
+              notifTitle = `💬 رسالة من ${newest.sender.name}`;
+              notifBody = newest.postContent || 'أرسل لك رسالة خاصة جديدة';
+              notifTab = 'messages';
+              break;
+            case 'like':
+              notifTitle = `❤️ إعجاب جديد من ${newest.sender.name}`;
+              notifBody = `أعجب بمنشورك: "${(newest.postContent || '').substring(0, 45)}"`;
+              notifTab = 'home';
+              break;
+            case 'comment':
+              notifTitle = `💬 تعليق من ${newest.sender.name}`;
+              notifBody = `"${(newest.postContent || '').substring(0, 60)}"`;
+              notifTab = 'home';
+              break;
+            case 'repost':
+              notifTitle = `🔄 إعادة نشر من ${newest.sender.name}`;
+              notifBody = `أعاد نشر تغريدتك: "${(newest.postContent || '').substring(0, 45)}"`;
+              notifTab = 'home';
+              break;
+            case 'follow':
+              notifTitle = `✨ متابع جديد على GXE!`;
+              notifBody = `بدأ ${newest.sender.name} (@${newest.sender.username}) بمتابعتك الآن.`;
+              notifTab = 'profile';
+              break;
+          }
+
+          showBrowserNotification(notifTitle, {
+            body: notifBody,
+            icon: newest.sender.avatar,
+            tag: `gxe-${newest.type}-${newest.sender.id}`,
+            data: {
+              tab: notifTab,
+              senderId: newest.sender.id,
+              postId: newest.postId,
+            },
+          });
+        }
       }
       prevNotifsCountRef.current = loadedNotifs.length;
       setNotifications(loadedNotifs);
     });
     return () => unsub();
   }, [currentUser.id]);
+
+  // Handle incoming notification clicks dispatched by Service Worker
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NAVIGATE_TAB') {
+        if (event.data.tab) {
+          setActiveTab(event.data.tab);
+        }
+        if (event.data.senderId && communityUsers.length > 0) {
+          const user = communityUsers.find((u) => u.id === event.data.senderId);
+          if (user) setSelectedChatUser(user);
+        }
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+  }, [communityUsers]);
 
   // Subscribe to community registered members
   useEffect(() => {

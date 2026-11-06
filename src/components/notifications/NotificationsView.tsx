@@ -49,6 +49,8 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
         return <Repeat className="w-5 h-5 text-[#00ba7c]" />;
       case 'follow':
         return <UserPlus className="w-5 h-5 text-[#1d9bf0]" />;
+      case 'message':
+        return <MessageCircle className="w-5 h-5 text-[#00ba7c] fill-current" />;
     }
   };
 
@@ -62,6 +64,8 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
         return 'أعاد نشر منشورك';
       case 'follow':
         return 'بدأ بمتابعتك الآن';
+      case 'message':
+        return 'أرسل لك رسالة خاصة:';
     }
   };
 

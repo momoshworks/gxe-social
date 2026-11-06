@@ -112,7 +112,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
         mediaUrl = uploadRes.url;
       }
 
-      await sendDirectMessage(currentUser.id, selectedUser.id, inputText.trim(), mediaUrl);
+      await sendDirectMessage(currentUser, selectedUser.id, inputText.trim(), mediaUrl);
       playNotificationSound();
       setInputText('');
       removeFile();

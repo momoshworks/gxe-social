@@ -57,7 +57,7 @@ export interface AppNotification {
   id: string;
   recipientId: string;
   sender: User;
-  type: 'like' | 'comment' | 'repost' | 'follow';
+  type: 'like' | 'comment' | 'repost' | 'follow' | 'message';
   postId?: string;
   postContent?: string;
   createdAt: number;
