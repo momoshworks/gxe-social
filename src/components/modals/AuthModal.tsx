@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Mail, Lock, User as UserIcon, LogIn } from 'lucide-react';
-import { loginWithGoogle, loginWithEmail, registerWithEmail } from '../../services/authService';
+import { X, Sparkles, Mail, Lock, User as UserIcon, LogIn, Cloud, UserCheck } from 'lucide-react';
+import { loginWithGoogle, loginWithEmail, registerWithEmail, saveLocalUser } from '../../services/authService';
+import { isCloudConnected } from '../../services/firebase';
 import type { User } from '../../types';
+import logoImg from '../../assets/logo.png';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (user: User) => void;
+  onOpenCloudSettings?: () => void;
   onNotify?: (text: string, type?: 'success' | 'info') => void;
 }
 
@@ -14,6 +17,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  onOpenCloudSettings,
   onNotify,
 }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -23,9 +27,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const isConnected = isCloudConnected();
+
   if (!isOpen) return null;
 
   const handleGoogleLogin = async () => {
+    if (!isConnected) {
+      setErrorMsg('قاعدة بيانات Firebase السحابية لم يتم ربطها بعد. اضغط على الزر بالأسفل لربط مفاتيح مشروعك gxe-app أو تابع كضيف.');
+      return;
+    }
+
     try {
       setLoading(true);
       setErrorMsg('');
@@ -36,7 +47,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } catch (err: any) {
       console.error('Google login error:', err);
       setErrorMsg(err.message || 'حدث خطأ أثناء الاتصال بحساب Google');
-      if (onNotify) onNotify('يرجى التحقق من مفاتيح Firebase لتسجيل الدخول السحابي أو المتابعة كضيف', 'info');
+      if (onNotify) onNotify('يرجى التحقق من تفعيل Google في Authentication بمشروعك', 'info');
     } finally {
       setLoading(false);
     }
@@ -45,6 +56,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
+
+    if (!isConnected) {
+      // Local demo sign in
+      const guest: User = {
+        id: 'user_' + Date.now().toString(36),
+        name: displayName.trim() || email.split('@')[0],
+        username: email.split('@')[0],
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`,
+        email,
+        verified: true,
+        bio: 'مستخدم نشط في GXE 🚀',
+      };
+      saveLocalUser(guest);
+      onSuccess(guest);
+      onClose();
+      if (onNotify) onNotify(`تم الدخول بنجاح كـ ${guest.name}! 🌟`, 'success');
+      return;
+    }
 
     try {
       setLoading(true);
@@ -67,8 +96,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  const handleContinueAsGuest = () => {
+    const guest: User = {
+      id: 'guest_' + Math.floor(1000 + Math.random() * 9000),
+      name: 'مستخدم GXE',
+      username: 'gxe_user_' + Math.floor(100 + Math.random() * 900),
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      verified: true,
+      bio: 'عضو في مجتمع GXE 🚀',
+    };
+    saveLocalUser(guest);
+    onSuccess(guest);
+    onClose();
+    if (onNotify) onNotify('تم الدخول كضيف فوري! يمكنك استخدام المنصة ونشر الوسائط والرسائل الآن 🚀', 'success');
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in select-none">
       <div
         className="w-full max-w-md bg-[#000000] border border-[#2f3336] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -83,7 +127,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mt-2">
-          <img src="/logo.png" alt="GXE Logo" className="w-14 h-14 object-contain mb-3 drop-shadow-md" />
+          <img src={logoImg} alt="GXE Logo" className="w-14 h-14 object-contain mb-3 drop-shadow-md" />
           <h2 className="text-2xl font-black text-[#e7e9ea] tracking-tight">
             انضم إلى مجتمع <span className="text-[#1d9bf0]">GXE</span>
           </h2>
@@ -92,22 +136,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </p>
         </div>
 
+        {/* Cloud Notice / Link if not connected */}
+        {!isConnected && (
+          <div className="mt-4 p-3 rounded-2xl bg-[#ff9900]/10 border border-[#ff9900]/30 text-xs text-[#ff9900] flex flex-col gap-1.5 text-center">
+            <span className="font-bold flex items-center justify-center gap-1">
+              <Cloud className="w-4 h-4" />
+              <span>مشروعك السحابي: gxe-app</span>
+            </span>
+            <p className="text-[11px] opacity-90">
+              لتسجيل الدخول بـ Google وحفظ كل شيء على سحابة Google مباشرة، أدخل كود الربط السحابي:
+            </p>
+            {onOpenCloudSettings && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenCloudSettings();
+                }}
+                className="mt-1 px-3 py-1.5 rounded-full bg-[#ff9900] text-black font-bold text-xs hover:bg-[#ff9900]/90 transition-colors self-center"
+              >
+                ⚙️ إدخال كود ربط Firebase السحابي
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Error message */}
         {errorMsg && (
-          <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center">
+          <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center leading-relaxed">
             {errorMsg}
           </div>
         )}
 
         {/* Google Sign-in Button */}
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-5 flex flex-col gap-3">
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
             className="flex items-center justify-center gap-3 w-full py-3 px-4 rounded-full bg-white hover:bg-gray-100 active:scale-98 text-black font-bold text-sm shadow-md transition-all border border-gray-200"
           >
             {/* Google Logo SVG */}
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -128,7 +196,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <span>{loading ? 'جاري الاتصال السحابي...' : 'تسجيل الدخول بحساب Google'}</span>
           </button>
 
-          <div className="flex items-center my-2">
+          {/* Quick Instant Guest Access Button */}
+          <button
+            type="button"
+            onClick={handleContinueAsGuest}
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-[#16181c] hover:bg-[#202327] border border-[#2f3336] text-[#e7e9ea] font-medium text-xs transition-colors"
+          >
+            <UserCheck className="w-4 h-4 text-[#00ba7c]" />
+            <span>المتابعة السريعة كضيف (تجربة كل الميزات الآن)</span>
+          </button>
+
+          <div className="flex items-center my-1">
             <div className="flex-1 border-t border-[#2f3336]" />
             <span className="px-3 text-xs text-[#71767b]">أو عبر البريد</span>
             <div className="flex-1 border-t border-[#2f3336]" />
@@ -192,7 +270,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </form>
 
         {/* Toggle Sign up / Login */}
-        <div className="mt-4 text-center">
+        <div className="mt-3 text-center">
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}

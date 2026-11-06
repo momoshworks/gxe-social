@@ -197,6 +197,7 @@ export const App: React.FC = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        onOpenCloudSettings={() => setIsCloudModalOpen(true)}
         onSuccess={(user) => {
           setCurrentUser(user);
         }}

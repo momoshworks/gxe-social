@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { User } from '../../types';
 import { isCloudConnected } from '../../services/firebase';
+import logoImg from '../../assets/logo.png';
 
 interface NavigationSidebarProps {
   currentUser: User;
@@ -54,7 +55,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           className="p-2 hover:bg-[#181818] rounded-full transition-colors cursor-pointer text-[#e7e9ea] flex items-center gap-3"
           title="GXE"
         >
-          <img src="/logo.png" alt="GXE Logo" className="w-9 h-9 object-contain drop-shadow" />
+          <img src={logoImg} alt="GXE Logo" className="w-9 h-9 object-contain drop-shadow" />
           <span className="hidden xl:inline text-xl font-black tracking-wider text-[#e7e9ea]">
             GXE
           </span>
