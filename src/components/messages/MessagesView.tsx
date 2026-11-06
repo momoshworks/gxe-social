@@ -12,7 +12,7 @@ import { playNotificationSound } from '../../services/notificationService';
 interface MessagesViewProps {
   currentUser: User;
   initialChatUser?: User | null;
-  onNotify?: (text: string, type?: 'success' | 'info') => void;
+  onNotify?: (text: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 export const MessagesView: React.FC<MessagesViewProps> = ({
@@ -31,6 +31,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastMessageCountRef = useRef<number>(0);
 
   // If initialChatUser changes, select it
   useEffect(() => {
@@ -51,24 +52,35 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
     return () => unsub();
   }, [currentUser.id]);
 
-  // Subscribe to chat with selected user
+  // Subscribe to chat with selected user in real-time
   useEffect(() => {
-    if (!selectedUser) return;
-    const unsub = subscribeToChat(currentUser.id, selectedUser.id, (loadedMessages) => {
-      // If a new message arrived from other user, play sound
-      if (
-        loadedMessages.length > messages.length &&
-        loadedMessages[loadedMessages.length - 1]?.senderId === selectedUser.id
-      ) {
-        playNotificationSound();
+    if (!selectedUser || !currentUser.id) return;
+    lastMessageCountRef.current = 0;
+
+    const unsub = subscribeToChat(
+      currentUser.id,
+      selectedUser.id,
+      (loadedMessages) => {
+        // If a new message arrived from other user, play sound
+        if (
+          lastMessageCountRef.current > 0 &&
+          loadedMessages.length > lastMessageCountRef.current &&
+          loadedMessages[loadedMessages.length - 1]?.senderId === selectedUser.id
+        ) {
+          playNotificationSound();
+        }
+        lastMessageCountRef.current = loadedMessages.length;
+        setMessages(loadedMessages);
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 50);
+      },
+      (errorMsg) => {
+        if (onNotify) onNotify(errorMsg, 'error');
       }
-      setMessages(loadedMessages);
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
-    });
+    );
     return () => unsub();
-  }, [currentUser.id, selectedUser]);
+  }, [currentUser.id, selectedUser?.id]);
 
   const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,9 +116,9 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
       playNotificationSound();
       setInputText('');
       removeFile();
-    } catch (e) {
-      console.error('Failed to send direct message:', e);
-      if (onNotify) onNotify('تعذر إرسال الرسالة، تحقق من الاتصال', 'info');
+    } catch (err: any) {
+      console.error('Failed to send direct message:', err);
+      if (onNotify) onNotify(err?.message || 'تعذر إرسال الرسالة، تحقق من الاتصال', 'error');
     } finally {
       setIsSending(false);
     }
@@ -165,11 +177,11 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                     isSelected ? 'bg-[#16181c]' : ''
                   }`}
                 >
-                  <div className="relative">
+                  <div className="relative shrink-0">
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-11 h-11 rounded-full object-cover shrink-0"
+                      className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#2f3336]"
                     />
                     {user.isOnline && (
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00ba7c] border-2 border-black rounded-full" />
@@ -180,12 +192,16 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm text-[#e7e9ea] truncate">{user.name}</span>
                       {user.verified && (
-                        <span className="text-[#1d9bf0] text-xs font-bold mr-1">✓</span>
+                        <span className="text-[#1d9bf0] text-xs font-bold mr-1 shrink-0">✓</span>
                       )}
                     </div>
-                    <span className="text-xs text-[#71767b]">@{user.username}</span>
+                    <div className="text-xs text-[#71767b] truncate" dir="ltr">
+                      @{user.username}
+                    </div>
                     {user.email && (
-                      <span className="text-[10px] text-[#71767b] block truncate">{user.email}</span>
+                      <span className="text-[10px] text-[#71767b] block truncate" dir="ltr">
+                        {user.email}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -208,39 +224,44 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
         {selectedUser ? (
           <>
             {/* Chat Header */}
-            <div className="p-3.5 border-b border-[#2f3336] bg-[#000000]/90 backdrop-blur-md flex items-center justify-between z-10">
-              <div className="flex items-center gap-3">
+            <div className="p-3.5 border-b border-[#2f3336] bg-[#000000]/90 backdrop-blur-md flex items-center justify-between z-10 gap-2">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <button
                   onClick={() => setSelectedUser(null)}
-                  className="md:hidden p-1.5 text-[#71767b] hover:text-white rounded-full hover:bg-[#181818]"
+                  className="md:hidden p-1.5 text-[#71767b] hover:text-white rounded-full hover:bg-[#181818] shrink-0"
                 >
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 <img
                   src={selectedUser.avatar}
                   alt={selectedUser.name}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#2f3336]"
                 />
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
-                    <span className="font-bold text-sm text-[#e7e9ea]">{selectedUser.name}</span>
+                    <span className="font-bold text-sm text-[#e7e9ea] truncate">
+                      {selectedUser.name}
+                    </span>
                     {selectedUser.verified && (
-                      <span className="text-[#1d9bf0] text-xs font-bold">✓</span>
+                      <span className="text-[#1d9bf0] text-xs font-bold shrink-0">✓</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#71767b]">
-                    <span>@{selectedUser.username}</span>
+                  <div className="flex items-center gap-2 text-xs text-[#71767b] truncate" dir="ltr">
+                    <span className="truncate">@{selectedUser.username}</span>
                     {selectedUser.email && (
-                      <span className="text-[11px] text-[#1d9bf0]">({selectedUser.email})</span>
+                      <span className="text-[11px] text-[#1d9bf0] truncate">
+                        ({selectedUser.email})
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs bg-[#00ba7c]/10 text-[#00ba7c] px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#00ba7c]" />
-                  <span>محادثة خاصة مشفرة</span>
+              <div className="shrink-0">
+                <span className="text-xs bg-[#00ba7c]/10 text-[#00ba7c] px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2 h-2 rounded-full bg-[#00ba7c] animate-pulse" />
+                  <span className="hidden sm:inline">محادثة مباشرة</span>
+                  <span className="sm:hidden">مباشر</span>
                 </span>
               </div>
             </div>
@@ -250,16 +271,24 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               {messages.length > 0 ? (
                 messages.map((msg) => {
                   const isMe = msg.senderId === currentUser.id;
+                  const timeStr =
+                    typeof msg.createdAt === 'number'
+                      ? new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : '';
+
                   return (
                     <div
                       key={msg.id}
                       className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                     >
                       <div
-                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                        className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                           isMe
                             ? 'bg-[#1d9bf0] text-white rounded-bl-sm'
-                            : 'bg-[#202327] text-[#e7e9ea] rounded-br-sm'
+                            : 'bg-[#202327] text-[#e7e9ea] rounded-br-sm border border-[#2f3336]/40'
                         }`}
                       >
                         {msg.mediaUrl && (
@@ -274,10 +303,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                         {msg.text && <p className="whitespace-pre-wrap break-words">{msg.text}</p>}
                       </div>
                       <span className="text-[10px] text-[#71767b] mt-1 px-1">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {timeStr}
                       </span>
                     </div>
                   );
@@ -329,12 +355,11 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2.5 text-[#71767b] hover:text-[#1d9bf0] hover:bg-[#181818] rounded-full transition-colors"
+                className="p-2.5 text-[#1d9bf0] hover:bg-[#1d9bf0]/10 rounded-full transition-colors"
                 title="إرفاق صورة أو ملف"
               >
                 <Paperclip className="w-5 h-5" />
               </button>
-
               <input
                 type="text"
                 value={inputText}
