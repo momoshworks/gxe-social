@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import type { Post, User } from './types';
 import { subscribeToPosts } from './services/dbService';
+import { subscribeToAuthState, logoutUser } from './services/authService';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
 import { MainFeed } from './components/feed/MainFeed';
 import { TrendsSidebar } from './components/layout/TrendsSidebar';
+import { MessagesView } from './components/messages/MessagesView';
 import { ImageLightbox } from './components/modals/ImageLightbox';
 import { ReplyModal } from './components/modals/ReplyModal';
 import { CloudSettingsModal } from './components/modals/CloudSettingsModal';
+import { AuthModal } from './components/modals/AuthModal';
 import { Toast, type ToastMessage } from './components/common/Toast';
 import { PwaUpdatePrompt } from './components/common/PwaUpdatePrompt';
 import { Home, Hash, Bell, Mail, Feather } from 'lucide-react';
 
-const CURRENT_USER: User = {
-  id: 'current-user-1',
-  name: 'محمد علي',
-  username: 'mohammed_ali',
-  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-  verified: true,
-  bio: 'مهندس برمجيات | مستكشف تقنيات الذكاء الاصطناعي والحوسبة السحابية ⚡',
-  followersCount: 1420,
-  followingCount: 380,
-};
-
 export const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<User>({
+    id: 'guest_user_' + Math.floor(1000 + Math.random() * 9000),
+    name: 'مستخدم GXE',
+    username: 'gxe_user',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    verified: true,
+    bio: 'عضو في مجتمع GXE السحابي ⚡',
+  });
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -38,8 +39,19 @@ export const App: React.FC = () => {
 
   const [replyingPost, setReplyingPost] = useState<Post | null>(null);
   const [isCloudModalOpen, setIsCloudModalOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
-  // Subscribe to real-time posts
+  // Subscribe to Auth State (Google / Email)
+  useEffect(() => {
+    const unsub = subscribeToAuthState((user) => {
+      if (user) {
+        setCurrentUser(user);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Subscribe to real-time posts from ALL users across the platform
   useEffect(() => {
     const unsubscribe = subscribeToPosts((updatedPosts) => {
       setPosts(updatedPosts);
@@ -66,7 +78,13 @@ export const App: React.FC = () => {
 
   const handleSelectTag = (tag: string) => {
     setSearchQuery(tag);
+    setActiveTab('home');
     addToast(`تم تصفية المنشورات بواسطة ${tag}`, 'info');
+  };
+
+  const handleLogout = async () => {
+    await logoutUser();
+    addToast('تم تسجيل الخروج بنجاح', 'info');
   };
 
   return (
@@ -78,24 +96,31 @@ export const App: React.FC = () => {
       <div className="flex w-full max-w-7xl justify-between min-h-screen pb-16 md:pb-0">
         {/* Right Sidebar: Navigation (In RTL direction, this appears on the right side) */}
         <NavigationSidebar
-          currentUser={CURRENT_USER}
+          currentUser={currentUser}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onOpenComposer={() => {
+            setActiveTab('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           onOpenCloudSettings={() => setIsCloudModalOpen(true)}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onLogout={handleLogout}
         />
 
-        {/* Center: Main Feed */}
-        <MainFeed
-          posts={posts}
-          currentUser={CURRENT_USER}
-          searchQuery={searchQuery}
-          onOpenReply={(post) => setReplyingPost(post)}
-          onOpenLightbox={handleOpenLightbox}
-          onNotify={addToast}
-        />
+        {/* Center Content: Main Feed OR Messages View */}
+        {activeTab === 'messages' ? (
+          <MessagesView currentUser={currentUser} onNotify={addToast} />
+        ) : (
+          <MainFeed
+            posts={posts}
+            currentUser={currentUser}
+            searchQuery={searchQuery}
+            onOpenReply={(post) => setReplyingPost(post)}
+            onOpenLightbox={handleOpenLightbox}
+            onNotify={addToast}
+          />
+        )}
 
         {/* Left Sidebar: Trends & Follow suggestions */}
         <TrendsSidebar
@@ -122,6 +147,7 @@ export const App: React.FC = () => {
         </button>
         <button
           onClick={() => {
+            setActiveTab('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className="p-3 rounded-full bg-[#1d9bf0] text-white shadow-lg -mt-5"
@@ -142,7 +168,7 @@ export const App: React.FC = () => {
         </button>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal for Fullscreen Image Viewing & Downloading */}
       <ImageLightbox
         imageUrl={lightboxData.url}
         imageName={lightboxData.name}
@@ -155,7 +181,7 @@ export const App: React.FC = () => {
       {/* Reply Modal */}
       <ReplyModal
         post={replyingPost}
-        currentUser={CURRENT_USER}
+        currentUser={currentUser}
         onClose={() => setReplyingPost(null)}
         onNotify={addToast}
       />
@@ -164,6 +190,16 @@ export const App: React.FC = () => {
       <CloudSettingsModal
         isOpen={isCloudModalOpen}
         onClose={() => setIsCloudModalOpen(false)}
+        onNotify={addToast}
+      />
+
+      {/* Google Auth / Sign-in Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(user) => {
+          setCurrentUser(user);
+        }}
         onNotify={addToast}
       />
 

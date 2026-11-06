@@ -8,7 +8,8 @@ import {
   User as UserIcon,
   Feather,
   Cloud,
-  MoreHorizontal,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import type { User } from '../../types';
 import { isCloudConnected } from '../../services/firebase';
@@ -19,6 +20,8 @@ interface NavigationSidebarProps {
   setActiveTab: (tab: string) => void;
   onOpenComposer: () => void;
   onOpenCloudSettings: () => void;
+  onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
@@ -27,6 +30,8 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   setActiveTab,
   onOpenComposer,
   onOpenCloudSettings,
+  onOpenAuth,
+  onLogout,
 }) => {
   const isConnected = isCloudConnected();
 
@@ -43,11 +48,16 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     <header className="flex flex-col justify-between h-screen sticky top-0 py-3 px-2 sm:px-4 md:px-6 w-16 sm:w-20 xl:w-64 select-none shrink-0 border-l border-[#2f3336]">
       {/* Top Section */}
       <div className="flex flex-col items-center xl:items-start gap-2">
-        {/* X Logo */}
-        <div className="p-3 hover:bg-[#181818] rounded-full transition-colors cursor-pointer text-[#e7e9ea] inline-flex items-center justify-center">
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="w-8 h-8 fill-current">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-          </svg>
+        {/* GXE Logo & Brand */}
+        <div
+          onClick={() => setActiveTab('home')}
+          className="p-2 hover:bg-[#181818] rounded-full transition-colors cursor-pointer text-[#e7e9ea] flex items-center gap-3"
+          title="GXE"
+        >
+          <img src="/logo.png" alt="GXE Logo" className="w-9 h-9 object-contain drop-shadow" />
+          <span className="hidden xl:inline text-xl font-black tracking-wider text-[#e7e9ea]">
+            GXE
+          </span>
         </div>
 
         {/* Navigation Items */}
@@ -106,36 +116,51 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           className="mt-4 w-full bg-[#1d9bf0] hover:bg-[#1a8cd8] active:scale-98 text-white rounded-full font-bold p-3 xl:py-3.5 flex items-center justify-center transition-all shadow-lg shadow-[#1d9bf0]/20"
         >
           <Feather className="w-6 h-6 xl:hidden" />
-          <span className="hidden xl:inline text-lg">نشر</span>
+          <span className="hidden xl:inline text-lg">نشر في GXE</span>
         </button>
       </div>
 
-      {/* Bottom User Account Pill */}
-      <div className="relative my-2">
-        <button
-          onClick={() => setActiveTab('profile')}
-          className="flex items-center justify-between w-full p-2.5 rounded-full hover:bg-[#181818] transition-colors group cursor-pointer text-right"
-        >
-          <div className="flex items-center gap-3">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-10 h-10 rounded-full object-cover shrink-0"
-            />
-            <div className="hidden xl:flex flex-col leading-tight">
-              <div className="flex items-center gap-1">
-                <span className="font-bold text-[#e7e9ea] text-sm truncate max-w-[110px]">
-                  {currentUser.name}
-                </span>
-                {currentUser.verified && (
-                  <span className="text-[#1d9bf0] text-xs font-bold">✓</span>
-                )}
+      {/* Bottom User Account Pill & Google Sign In */}
+      <div className="relative my-2 w-full">
+        {currentUser.email ? (
+          <div className="flex items-center justify-between w-full p-2.5 rounded-full hover:bg-[#181818] transition-colors group cursor-pointer text-right">
+            <div className="flex items-center gap-3 min-w-0" onClick={() => setActiveTab('profile')}>
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-10 h-10 rounded-full object-cover shrink-0"
+              />
+              <div className="hidden xl:flex flex-col leading-tight min-w-0">
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-[#e7e9ea] text-sm truncate max-w-[100px]">
+                    {currentUser.name}
+                  </span>
+                  {currentUser.verified && (
+                    <span className="text-[#1d9bf0] text-xs font-bold">✓</span>
+                  )}
+                </div>
+                <span className="text-xs text-[#71767b] truncate">@{currentUser.username}</span>
               </div>
-              <span className="text-xs text-[#71767b]">@{currentUser.username}</span>
             </div>
+
+            <button
+              onClick={onLogout}
+              className="hidden xl:block p-1.5 text-[#71767b] hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors"
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <MoreHorizontal className="hidden xl:block w-5 h-5 text-[#71767b] group-hover:text-[#e7e9ea]" />
-        </button>
+        ) : (
+          <button
+            onClick={onOpenAuth}
+            className="flex items-center justify-center gap-2 w-full p-3 bg-white hover:bg-gray-200 text-black font-bold rounded-full text-xs shadow-md transition-all active:scale-95"
+            title="تسجيل حساب Google"
+          >
+            <LogIn className="w-4 h-4" />
+            <span className="hidden xl:inline">حساب Google / دخول</span>
+          </button>
+        )}
       </div>
     </header>
   );

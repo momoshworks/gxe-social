@@ -67,7 +67,7 @@ export const TrendsSidebar: React.FC<TrendsSidebarProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث في X..."
+            placeholder="بحث في منشورات GXE..."
             className="w-full bg-[#202327] text-[#e7e9ea] placeholder-[#71767b] text-sm rounded-full py-2.5 pr-11 pl-4 outline-none border border-transparent focus:border-[#1d9bf0] focus:bg-[#000000] transition-colors"
           />
           {searchQuery && (
@@ -184,7 +184,7 @@ export const TrendsSidebar: React.FC<TrendsSidebarProps> = ({
         <a href="#" className="hover:underline">سياسة الخصوصية</a>
         <a href="#" className="hover:underline">سياسة ملفات تعريف الارتباط</a>
         <a href="#" className="hover:underline">إمكانية الوصول</a>
-        <span>© 2026 X Corp.</span>
+        <span>© 2026 GXE Corp.</span>
       </footer>
     </aside>
   );

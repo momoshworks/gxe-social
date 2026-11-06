@@ -3,10 +3,13 @@ export interface User {
   name: string;
   username: string;
   avatar: string;
+  email?: string;
   verified?: boolean;
   bio?: string;
   followersCount?: number;
   followingCount?: number;
+  createdAt?: number;
+  isOnline?: boolean;
 }
 
 export interface Comment {
@@ -34,6 +37,17 @@ export interface Post {
   repostedBy?: string[]; // user IDs
   bookmarkedBy?: string[];
   pinned?: boolean;
+}
+
+export interface DirectMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  participants: string[]; // [id1, id2] sorted
+  text: string;
+  mediaUrl?: string;
+  createdAt: number;
+  read?: boolean;
 }
 
 export interface Trend {
