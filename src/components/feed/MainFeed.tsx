@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, MessageSquareDashed } from 'lucide-react';
+import { Sparkles, MessageSquareDashed, Users } from 'lucide-react';
 import type { Post, User } from '../../types';
 import { PostComposer } from './PostComposer';
 import { PostCard } from './PostCard';
@@ -63,13 +63,14 @@ export const MainFeed: React.FC<MainFeedProps> = ({
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const contentMatch = post.content.toLowerCase().includes(q);
-      const authorMatch = post.author.name.toLowerCase().includes(q) || post.author.username.toLowerCase().includes(q);
+      const authorMatch =
+        post.author.name.toLowerCase().includes(q) || post.author.username.toLowerCase().includes(q);
       if (!contentMatch && !authorMatch) return false;
     }
 
-    // Following tab: for demonstration, show subset or non-empty
+    // Following tab: strictly show posts from users the current user actually follows
     if (feedTab === 'following') {
-      return post.author.id !== currentUser.id || post.likes > 50;
+      return currentUser.following?.includes(post.author.id) ?? false;
     }
 
     return true;
@@ -84,7 +85,7 @@ export const MainFeed: React.FC<MainFeedProps> = ({
       <div className="sticky top-0 z-30 bg-[#000000]/80 backdrop-blur-md border-b border-[#2f3336]">
         <div className="px-4 py-3 flex items-center justify-between border-b border-[#2f3336]/40">
           <h1 className="font-bold text-lg text-[#e7e9ea]">الرئيسية</h1>
-          <Sparkles className="w-5 h-5 text-[#1d9bf0] cursor-pointer hover:rotate-12 transition-transform" />
+          <Sparkles className="w-5 h-5 text-[#1d9bf0]" />
         </div>
 
         {/* Tabs */}
@@ -98,7 +99,7 @@ export const MainFeed: React.FC<MainFeedProps> = ({
                 feedTab === 'for_you' ? 'font-bold text-[#e7e9ea]' : 'font-medium text-[#71767b]'
               }`}
             >
-              لك
+              لك (الجميع)
             </span>
             {feedTab === 'for_you' && (
               <span className="absolute bottom-0 h-1 w-12 bg-[#1d9bf0] rounded-full" />
@@ -114,7 +115,7 @@ export const MainFeed: React.FC<MainFeedProps> = ({
                 feedTab === 'following' ? 'font-bold text-[#e7e9ea]' : 'font-medium text-[#71767b]'
               }`}
             >
-              متابَعون
+              متابَعون ({currentUser.following?.length || 0})
             </span>
             {feedTab === 'following' && (
               <span className="absolute bottom-0 h-1 w-16 bg-[#1d9bf0] rounded-full" />
@@ -143,11 +144,21 @@ export const MainFeed: React.FC<MainFeedProps> = ({
             />
           ))}
         </div>
+      ) : feedTab === 'following' ? (
+        <div className="p-16 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
+          <Users className="w-12 h-12 text-[#2f3336]" />
+          <p className="text-base font-semibold text-[#e7e9ea]">لا توجد منشورات من الأشخاص الذين تتابعهم</p>
+          <p className="text-xs max-w-xs">
+            تصفح تبويب (لك) أو قائمة (اقتراحات المتابعة) لمتابعة المستخدمين ورؤية منشوراتهم الحصرية هنا!
+          </p>
+        </div>
       ) : (
-        <div className="p-12 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
+        <div className="p-16 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
           <MessageSquareDashed className="w-12 h-12 text-[#2f3336]" />
-          <p className="text-base font-semibold text-[#e7e9ea]">لا توجد منشورات مطابقة حالياً</p>
-          <p className="text-xs">جرّب كتابة منشور جديد أو تغيير كلمة البحث في الشريط الجانبي</p>
+          <p className="text-base font-semibold text-[#e7e9ea]">لا توجد منشورات في المنصة حتى الآن</p>
+          <p className="text-xs max-w-xs">
+            كن أول من يشارك فكرة، صورة، أو مستند في مجتمع GXE عبر صندوق النشر في الأعلى!
+          </p>
         </div>
       )}
     </main>

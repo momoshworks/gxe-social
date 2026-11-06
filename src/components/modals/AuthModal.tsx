@@ -46,8 +46,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error('Google login error:', err);
-      setErrorMsg(err.message || 'حدث خطأ أثناء الاتصال بحساب Google');
-      if (onNotify) onNotify('يرجى التحقق من تفعيل Google في Authentication بمشروعك', 'info');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setErrorMsg('تم إغلاق نافذة Google المنبثقة قبل اختيار الحساب. اضغط على الزر مجدداً واختر إيميلك دون إغلاق النافذة للمتابعة.');
+      } else if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
+        setErrorMsg('النطاق غير مضاف في قائمة النطاقات المعتمدة (Authorized Domains) في Firebase.');
+      } else {
+        setErrorMsg(err.message || 'حدث خطأ أثناء الاتصال بحساب Google');
+      }
     } finally {
       setLoading(false);
     }

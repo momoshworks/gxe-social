@@ -8,6 +8,8 @@ export interface User {
   bio?: string;
   followersCount?: number;
   followingCount?: number;
+  following?: string[]; // IDs of users this user follows
+  followers?: string[]; // IDs of users following this user
   createdAt?: number;
   isOnline?: boolean;
 }
@@ -50,11 +52,23 @@ export interface DirectMessage {
   read?: boolean;
 }
 
+export interface AppNotification {
+  id: string;
+  recipientId: string;
+  sender: User;
+  type: 'like' | 'comment' | 'repost' | 'follow';
+  postId?: string;
+  postContent?: string;
+  createdAt: number;
+  read: boolean;
+}
+
 export interface Trend {
   id: string;
   category: string;
   tag: string;
   postsCount: string;
+  count: number;
 }
 
 export interface FirebaseConfig {

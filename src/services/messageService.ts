@@ -24,24 +24,7 @@ function getLocalMessages(): DirectMessage[] {
   } catch (e) {
     console.error('Error reading local messages', e);
   }
-  return [
-    {
-      id: 'msg-demo-1',
-      senderId: 'user-tech-lead',
-      receiverId: 'guest_user',
-      participants: ['guest_user', 'user-tech-lead'].sort(),
-      text: 'مرحباً بك في منصة GXE! 🚀 سعيدين بوجودك معنا، جرب إرسال رسالة لحظية هنا.',
-      createdAt: Date.now() - 1000 * 60 * 20,
-    },
-    {
-      id: 'msg-demo-2',
-      senderId: 'user-designer',
-      receiverId: 'guest_user',
-      participants: ['guest_user', 'user-designer'].sort(),
-      text: 'أهلاً بك! تصميم الواجهة يدعم إرسال الرسائل الفورية وتحديثات السحابة الحية.',
-      createdAt: Date.now() - 1000 * 60 * 5,
-    },
-  ];
+  return [];
 }
 
 function setLocalMessages(messages: DirectMessage[]) {
@@ -152,39 +135,9 @@ export function subscribeToChat(
 }
 
 /**
- * Subscribe to all registered community members in real-time
+ * Subscribe to all registered community members in real-time from Firestore
  */
 export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Unsubscribe {
-  const DEFAULT_COMMUNITY: User[] = [
-    {
-      id: 'user-tech-lead',
-      name: 'أحمد محمود',
-      username: 'ahmed_dev',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      verified: true,
-      bio: 'مهندس سحابي ومطور واجهات في GXE 🚀',
-      isOnline: true,
-    },
-    {
-      id: 'user-designer',
-      name: 'سارة القحطاني',
-      username: 'sara_uiux',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      verified: true,
-      bio: 'مصممة واجهات ومطورة تجربة مستخدم 🎨',
-      isOnline: true,
-    },
-    {
-      id: 'user-ai',
-      name: 'مجتمع الذكاء الاصطناعي',
-      username: 'arabic_ai',
-      avatar: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=150&auto=format&fit=crop&q=80',
-      verified: true,
-      bio: 'أحدث التطورات في هندسة النماذج التوليدية 🤖',
-      isOnline: false,
-    },
-  ];
-
   if (db) {
     try {
       const usersRef = collection(db, 'users');
@@ -195,19 +148,15 @@ export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Un
           snapshot.forEach((d) => {
             list.push({ id: d.id, ...(d.data() as Omit<User, 'id'>) });
           });
-          if (list.length > 0) {
-            onUpdate(list);
-          } else {
-            onUpdate(DEFAULT_COMMUNITY);
-          }
+          onUpdate(list);
         },
-        () => onUpdate(DEFAULT_COMMUNITY)
+        () => onUpdate([])
       );
     } catch (e) {
       console.warn('Could not subscribe to cloud users:', e);
     }
   }
 
-  onUpdate(DEFAULT_COMMUNITY);
+  onUpdate([]);
   return () => {};
 }

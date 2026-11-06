@@ -11,91 +11,26 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
+  getDocs,
+  writeBatch,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Post, Comment, User } from '../types';
+import type { Post, Comment, User, AppNotification, Trend } from '../types';
 
-const LOCAL_POSTS_KEY = 'x_social_local_posts';
-const LOCAL_COMMENTS_KEY = 'x_social_local_comments';
-const BROADCAST_CHANNEL = 'x_social_realtime_bus';
+const LOCAL_POSTS_KEY = 'gxe_real_posts';
+const LOCAL_COMMENTS_KEY = 'gxe_real_comments';
+const LOCAL_NOTIFS_KEY = 'gxe_real_notifications';
+const BROADCAST_CHANNEL = 'gxe_realtime_data_bus';
 
-// BroadcastChannel for instant cross-tab real-time sync when offline / demo mode
+// BroadcastChannel for instant cross-tab real-time sync when offline
 const channel = typeof window !== 'undefined' && 'BroadcastChannel' in window
   ? new BroadcastChannel(BROADCAST_CHANNEL)
   : null;
 
-// Initial high-quality starter posts
-const INITIAL_DEMO_POSTS: Post[] = [
-  {
-    id: 'demo-1',
-    author: {
-      id: 'user-tech-lead',
-      name: 'أحمد محمود',
-      username: 'ahmed_dev',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      verified: true,
-      bio: 'مهندس برمجيات ومطور سحابي | شغوف بالذكاء الاصطناعي و React',
-    },
-    content: 'أهلاً بكم في المنصة الجديدة! 🔥 تم إطلاق التطبيق بدعم كامل للتحديثات اللحظية (Real-time)، ورفع وتحميل الصور والوسائط مباشرة، وقاعدة بيانات سحابية مجانية ودائمة 🚀✨\n\nما رأيكم في واجهة X الداكنة؟ شاركونا تجربتكم! 👇 #تطوير #تقنية #برمجة',
-    mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
-    mediaType: 'image',
-    mediaName: 'modern_abstract_wave.jpg',
-    mediaSize: '420 KB',
-    createdAt: Date.now() - 1000 * 60 * 15, // 15 mins ago
-    likes: 42,
-    reposts: 12,
-    commentsCount: 3,
-    likedBy: [],
-    repostedBy: [],
-    bookmarkedBy: [],
-    pinned: true,
-  },
-  {
-    id: 'demo-2',
-    author: {
-      id: 'user-designer',
-      name: 'سارة القحطاني',
-      username: 'sara_uiux',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      verified: true,
-      bio: 'مصممة واجهات وتجربة مستخدم (UI/UX) 🎨',
-    },
-    content: 'التفاصيل الصغيرة هي التي تصنع الفرق دائماً! التناسق بين اللون الأسود الخالص والحدود الرمادية الناعمة (#2f3336) مع لمسات الأزرق (#1d9bf0) يعطي راحة بصرية فائقة أثناء التصفح الليلي 🖤💻',
-    createdAt: Date.now() - 1000 * 60 * 45, // 45 mins ago
-    likes: 89,
-    reposts: 24,
-    commentsCount: 7,
-    likedBy: [],
-    repostedBy: [],
-    bookmarkedBy: [],
-  },
-  {
-    id: 'demo-3',
-    author: {
-      id: 'user-ai',
-      name: 'مجتمع الذكاء الاصطناعي العربي',
-      username: 'arabic_ai',
-      avatar: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=150&auto=format&fit=crop&q=80',
-      verified: true,
-      bio: 'كل جديد في عالم تقنيات الذكاء الاصطناعي والمصادر المفتوحة',
-    },
-    content: 'نصيحة تقنية اليوم: عند بناء أنظمة الـ Real-time في تطبيقات التواصل، الاعتماد على WebSockets أو المستمعات السحابية مثل Firestore onSnapshot يوفر استهلاك الذاكرة ويعطي تجربة مستخدم استثنائية بدون الحاجة لإعادة تحميل الصفحة! ⚡🤖 #AI #WebDev',
-    mediaUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&auto=format&fit=crop&q=80',
-    mediaType: 'image',
-    mediaName: 'neural_ai_network.png',
-    mediaSize: '850 KB',
-    createdAt: Date.now() - 1000 * 60 * 120, // 2 hours ago
-    likes: 156,
-    reposts: 45,
-    commentsCount: 14,
-    likedBy: [],
-    repostedBy: [],
-    bookmarkedBy: [],
-  },
-];
+// Clean initial state: ZERO dummy/filler posts. Everything starts empty and real!
+const INITIAL_POSTS: Post[] = [];
 
-// Helper to get local posts
 function getLocalPosts(): Post[] {
   try {
     const raw = localStorage.getItem(LOCAL_POSTS_KEY);
@@ -103,8 +38,7 @@ function getLocalPosts(): Post[] {
   } catch (e) {
     console.error('Error reading local posts:', e);
   }
-  localStorage.setItem(LOCAL_POSTS_KEY, JSON.stringify(INITIAL_DEMO_POSTS));
-  return INITIAL_DEMO_POSTS;
+  return INITIAL_POSTS;
 }
 
 function setLocalPosts(posts: Post[]) {
@@ -121,34 +55,7 @@ function getLocalComments(): Comment[] {
   } catch (e) {
     console.error('Error reading local comments:', e);
   }
-  return [
-    {
-      id: 'comm-1',
-      postId: 'demo-1',
-      author: {
-        id: 'user-comm-1',
-        name: 'كريم عادل',
-        username: 'karim_tech',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      },
-      text: 'ما شاء الله! التطبيق سريع جداً وتجربة التصفح ناعمة جداً تضاهي تطبيق X الرسمي 👏',
-      createdAt: Date.now() - 1000 * 60 * 10,
-      likes: 5,
-    },
-    {
-      id: 'comm-2',
-      postId: 'demo-1',
-      author: {
-        id: 'user-comm-2',
-        name: 'نور الدين',
-        username: 'nour_dev',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-      },
-      text: 'خاصية التحميل الفوري للصور بدقة كاملة ممتازة ومفيدة جداً! 🔥',
-      createdAt: Date.now() - 1000 * 60 * 5,
-      likes: 3,
-    },
-  ];
+  return [];
 }
 
 function setLocalComments(comments: Comment[]) {
@@ -158,8 +65,25 @@ function setLocalComments(comments: Comment[]) {
   }
 }
 
+function getLocalNotifications(): AppNotification[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_NOTIFS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error('Error reading local notifications:', e);
+  }
+  return [];
+}
+
+function setLocalNotifications(notifs: AppNotification[]) {
+  localStorage.setItem(LOCAL_NOTIFS_KEY, JSON.stringify(notifs));
+  if (channel) {
+    channel.postMessage({ type: 'NOTIFICATIONS_UPDATED', notifs });
+  }
+}
+
 /**
- * Real-time subscription to Posts Feed
+ * Real-time subscription to Posts Feed (from Cloud Firestore)
  */
 export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe {
   if (db) {
@@ -167,7 +91,7 @@ export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe
       const postsRef = collection(db, 'posts');
       const q = query(postsRef, orderBy('createdAt', 'desc'));
 
-      const unsubscribe = onSnapshot(
+      return onSnapshot(
         q,
         (snapshot) => {
           const cloudPosts: Post[] = [];
@@ -192,20 +116,19 @@ export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe
             });
           });
           onUpdate(cloudPosts);
+          setLocalPosts(cloudPosts);
         },
         (error) => {
-          console.error('Firestore Posts subscribe error, falling back to local mode:', error);
+          console.warn('Firestore Posts subscribe error, using local storage cache:', error);
           onUpdate(getLocalPosts());
         }
       );
-
-      return unsubscribe;
     } catch (err) {
       console.warn('Could not subscribe to cloud firestore:', err);
     }
   }
 
-  // Local fallback with BroadcastChannel real-time sync
+  // Local fallback
   onUpdate(getLocalPosts());
 
   const handleMessage = (event: MessageEvent) => {
@@ -214,27 +137,19 @@ export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe
     }
   };
 
-  const handleStorage = (event: StorageEvent) => {
-    if (event.key === LOCAL_POSTS_KEY) {
-      onUpdate(getLocalPosts());
-    }
-  };
-
   if (channel) {
     channel.addEventListener('message', handleMessage);
   }
-  window.addEventListener('storage', handleStorage);
 
   return () => {
     if (channel) {
       channel.removeEventListener('message', handleMessage);
     }
-    window.removeEventListener('storage', handleStorage);
   };
 }
 
 /**
- * Create a new Post
+ * Create a new Post in Firestore
  */
 export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'likes' | 'reposts' | 'commentsCount'>): Promise<string> {
   const fullPost: Post = {
@@ -269,7 +184,7 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
       });
       return docRef.id;
     } catch (err) {
-      console.error('Failed to add post to Firestore, storing locally:', err);
+      console.warn('Failed to add post to Firestore, saving locally:', err);
     }
   }
 
@@ -280,7 +195,7 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
 }
 
 /**
- * Delete a Post
+ * Delete a Post from Firestore
  */
 export async function deletePost(postId: string): Promise<void> {
   if (db) {
@@ -288,7 +203,7 @@ export async function deletePost(postId: string): Promise<void> {
       await deleteDoc(doc(db, 'posts', postId));
       return;
     } catch (err) {
-      console.error('Failed to delete post from Firestore:', err);
+      console.warn('Failed to delete post from Firestore:', err);
     }
   }
 
@@ -298,23 +213,30 @@ export async function deletePost(postId: string): Promise<void> {
 }
 
 /**
- * Toggle Like on a Post (Real-time)
+ * Toggle Like on a Post (Atomic in Firestore + Notification trigger)
  */
-export async function toggleLike(postId: string, userId: string): Promise<void> {
+export async function toggleLike(post: Post, currentUser: User): Promise<void> {
+  const isLiked = post.likedBy?.includes(currentUser.id) ?? false;
+  const newCount = Math.max(0, post.likes + (isLiked ? -1 : 1));
+
   if (db) {
     try {
-      const postRef = doc(db, 'posts', postId);
-      // We check if current user liked it
-      // Let's do atomic increment or arrayUnion/arrayRemove
-      // In local/firestore, we update doc
-      const posts = getLocalPosts();
-      const current = posts.find((p) => p.id === postId);
-      const isLiked = current?.likedBy?.includes(userId) ?? false;
-
+      const postRef = doc(db, 'posts', post.id);
       await updateDoc(postRef, {
         likes: increment(isLiked ? -1 : 1),
-        likedBy: isLiked ? arrayRemove(userId) : arrayUnion(userId),
+        likedBy: isLiked ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
       });
+
+      // Send real notification to author if someone else liked their post
+      if (!isLiked && post.author.id !== currentUser.id) {
+        await addNotification({
+          recipientId: post.author.id,
+          sender: currentUser,
+          type: 'like',
+          postId: post.id,
+          postContent: post.content.substring(0, 60),
+        });
+      }
       return;
     } catch (err) {
       console.warn('Firestore like failed, applying locally:', err);
@@ -322,37 +244,51 @@ export async function toggleLike(postId: string, userId: string): Promise<void> 
   }
 
   const posts = getLocalPosts();
-  const updated = posts.map((post) => {
-    if (post.id === postId) {
-      const likedBy = post.likedBy || [];
-      const isLiked = likedBy.includes(userId);
-      const newLikedBy = isLiked ? likedBy.filter((id) => id !== userId) : [...likedBy, userId];
-      return {
-        ...post,
-        likes: Math.max(0, post.likes + (isLiked ? -1 : 1)),
-        likedBy: newLikedBy,
-      };
+  const updated = posts.map((p) => {
+    if (p.id === post.id) {
+      const likedBy = p.likedBy || [];
+      const newLikedBy = isLiked ? likedBy.filter((id) => id !== currentUser.id) : [...likedBy, currentUser.id];
+      return { ...p, likes: newCount, likedBy: newLikedBy };
     }
-    return post;
+    return p;
   });
   setLocalPosts(updated);
+
+  if (!isLiked && post.author.id !== currentUser.id) {
+    addNotification({
+      recipientId: post.author.id,
+      sender: currentUser,
+      type: 'like',
+      postId: post.id,
+      postContent: post.content.substring(0, 60),
+    });
+  }
 }
 
 /**
- * Toggle Repost on a Post (Real-time)
+ * Toggle Repost on a Post
  */
-export async function toggleRepost(postId: string, userId: string): Promise<void> {
+export async function toggleRepost(post: Post, currentUser: User): Promise<void> {
+  const isReposted = post.repostedBy?.includes(currentUser.id) ?? false;
+  const newCount = Math.max(0, post.reposts + (isReposted ? -1 : 1));
+
   if (db) {
     try {
-      const postRef = doc(db, 'posts', postId);
-      const posts = getLocalPosts();
-      const current = posts.find((p) => p.id === postId);
-      const isReposted = current?.repostedBy?.includes(userId) ?? false;
-
+      const postRef = doc(db, 'posts', post.id);
       await updateDoc(postRef, {
         reposts: increment(isReposted ? -1 : 1),
-        repostedBy: isReposted ? arrayRemove(userId) : arrayUnion(userId),
+        repostedBy: isReposted ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
       });
+
+      if (!isReposted && post.author.id !== currentUser.id) {
+        await addNotification({
+          recipientId: post.author.id,
+          sender: currentUser,
+          type: 'repost',
+          postId: post.id,
+          postContent: post.content.substring(0, 60),
+        });
+      }
       return;
     } catch (err) {
       console.warn('Firestore repost failed, applying locally:', err);
@@ -360,45 +296,51 @@ export async function toggleRepost(postId: string, userId: string): Promise<void
   }
 
   const posts = getLocalPosts();
-  const updated = posts.map((post) => {
-    if (post.id === postId) {
-      const repostedBy = post.repostedBy || [];
-      const isReposted = repostedBy.includes(userId);
-      const newRepostedBy = isReposted ? repostedBy.filter((id) => id !== userId) : [...repostedBy, userId];
-      return {
-        ...post,
-        reposts: Math.max(0, post.reposts + (isReposted ? -1 : 1)),
-        repostedBy: newRepostedBy,
-      };
+  const updated = posts.map((p) => {
+    if (p.id === post.id) {
+      const repostedBy = p.repostedBy || [];
+      const newRepostedBy = isReposted ? repostedBy.filter((id) => id !== currentUser.id) : [...repostedBy, currentUser.id];
+      return { ...p, reposts: newCount, repostedBy: newRepostedBy };
     }
-    return post;
+    return p;
   });
   setLocalPosts(updated);
 }
 
 /**
- * Toggle Bookmark
+ * Toggle Bookmark on a Post (persisted to Firestore)
  */
-export function toggleBookmark(postId: string, userId: string): Post[] {
+export async function toggleBookmark(postId: string, userId: string): Promise<boolean> {
   const posts = getLocalPosts();
-  const updated = posts.map((post) => {
-    if (post.id === postId) {
-      const bookmarkedBy = post.bookmarkedBy || [];
-      const isBookmarked = bookmarkedBy.includes(userId);
-      const newBookmarks = isBookmarked ? bookmarkedBy.filter((id) => id !== userId) : [...bookmarkedBy, userId];
-      return {
-        ...post,
-        bookmarkedBy: newBookmarks,
-      };
+  const current = posts.find((p) => p.id === postId);
+  const isBookmarked = current?.bookmarkedBy?.includes(userId) ?? false;
+
+  if (db) {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        bookmarkedBy: isBookmarked ? arrayRemove(userId) : arrayUnion(userId),
+      });
+      return !isBookmarked;
+    } catch (err) {
+      console.warn('Firestore bookmark failed, applying locally:', err);
     }
-    return post;
+  }
+
+  const updated = posts.map((p) => {
+    if (p.id === postId) {
+      const bookmarkedBy = p.bookmarkedBy || [];
+      const newBookmarks = isBookmarked ? bookmarkedBy.filter((id) => id !== userId) : [...bookmarkedBy, userId];
+      return { ...p, bookmarkedBy: newBookmarks };
+    }
+    return p;
   });
   setLocalPosts(updated);
-  return updated;
+  return !isBookmarked;
 }
 
 /**
- * Real-time subscription to Comments of a Post
+ * Comments subscription
  */
 export function subscribeToComments(postId: string, onUpdate: (comments: Comment[]) => void): Unsubscribe {
   if (db) {
@@ -406,7 +348,7 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
       const commentsRef = collection(db, 'comments');
       const q = query(commentsRef, where('postId', '==', postId), orderBy('createdAt', 'asc'));
 
-      const unsubscribe = onSnapshot(
+      return onSnapshot(
         q,
         (snapshot) => {
           const list: Comment[] = [];
@@ -423,13 +365,11 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
           });
           onUpdate(list);
         },
-        (error) => {
-          console.error('Firestore comments error, using local:', error);
+        () => {
           const all = getLocalComments();
           onUpdate(all.filter((c) => c.postId === postId));
         }
       );
-      return unsubscribe;
     } catch (e) {
       console.warn('Comments subscription fallback:', e);
     }
@@ -459,12 +399,12 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
 /**
  * Add a Comment to a Post
  */
-export async function addComment(postId: string, author: User, text: string): Promise<Comment> {
+export async function addComment(post: Post, author: User, text: string): Promise<Comment> {
   const newComment: Comment = {
     id: 'comm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-    postId,
+    postId: post.id,
     author,
-    text,
+    text: text.trim(),
     createdAt: Date.now(),
     likes: 0,
   };
@@ -479,11 +419,21 @@ export async function addComment(postId: string, author: User, text: string): Pr
         likes: 0,
       });
 
-      // Increment post commentsCount
-      const postRef = doc(db, 'posts', postId);
+      const postRef = doc(db, 'posts', post.id);
       await updateDoc(postRef, {
         commentsCount: increment(1),
       });
+
+      // Notification
+      if (post.author.id !== author.id) {
+        await addNotification({
+          recipientId: post.author.id,
+          sender: author,
+          type: 'comment',
+          postId: post.id,
+          postContent: text.substring(0, 60),
+        });
+      }
 
       return newComment;
     } catch (err) {
@@ -494,15 +444,208 @@ export async function addComment(postId: string, author: User, text: string): Pr
   const comments = getLocalComments();
   setLocalComments([...comments, newComment]);
 
-  // Update post count
   const posts = getLocalPosts();
   const updatedPosts = posts.map((p) => {
-    if (p.id === postId) {
+    if (p.id === post.id) {
       return { ...p, commentsCount: (p.commentsCount || 0) + 1 };
     }
     return p;
   });
   setLocalPosts(updatedPosts);
 
+  if (post.author.id !== author.id) {
+    addNotification({
+      recipientId: post.author.id,
+      sender: author,
+      type: 'comment',
+      postId: post.id,
+      postContent: text.substring(0, 60),
+    });
+  }
+
   return newComment;
+}
+
+/**
+ * Real-time Notifications system
+ */
+export function subscribeToNotifications(userId: string, onUpdate: (notifs: AppNotification[]) => void): Unsubscribe {
+  if (db) {
+    try {
+      const notifsRef = collection(db, 'notifications');
+      const q = query(notifsRef, where('recipientId', '==', userId), orderBy('createdAt', 'desc'));
+
+      return onSnapshot(
+        q,
+        (snapshot) => {
+          const list: AppNotification[] = [];
+          snapshot.forEach((d) => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              recipientId: data.recipientId,
+              sender: data.sender,
+              type: data.type,
+              postId: data.postId,
+              postContent: data.postContent,
+              createdAt: data.createdAt,
+              read: data.read ?? false,
+            });
+          });
+          onUpdate(list);
+          setLocalNotifications(list);
+        },
+        () => {
+          const all = getLocalNotifications().filter((n) => n.recipientId === userId);
+          onUpdate(all);
+        }
+      );
+    } catch (err) {
+      console.warn('Notifications subscribe failed:', err);
+    }
+  }
+
+  const all = getLocalNotifications().filter((n) => n.recipientId === userId);
+  onUpdate(all);
+
+  const handleMessage = (e: MessageEvent) => {
+    if (e.data?.type === 'NOTIFICATIONS_UPDATED') {
+      const list: AppNotification[] = e.data.notifs;
+      onUpdate(list.filter((n) => n.recipientId === userId));
+    }
+  };
+
+  if (channel) {
+    channel.addEventListener('message', handleMessage);
+  }
+
+  return () => {
+    if (channel) {
+      channel.removeEventListener('message', handleMessage);
+    }
+  };
+}
+
+export async function addNotification(notifData: Omit<AppNotification, 'id' | 'createdAt' | 'read'>): Promise<void> {
+  const newNotif: AppNotification = {
+    ...notifData,
+    id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+    createdAt: Date.now(),
+    read: false,
+  };
+
+  if (db) {
+    try {
+      await addDoc(collection(db, 'notifications'), newNotif);
+      return;
+    } catch (e) {
+      console.warn('Failed to add cloud notification:', e);
+    }
+  }
+
+  const all = getLocalNotifications();
+  setLocalNotifications([newNotif, ...all]);
+}
+
+export async function markNotificationsAsRead(userId: string): Promise<void> {
+  if (db) {
+    try {
+      const notifsRef = collection(db, 'notifications');
+      const q = query(notifsRef, where('recipientId', '==', userId), where('read', '==', false));
+      const snaps = await getDocs(q);
+      const batch = writeBatch(db);
+      snaps.forEach((docSnap) => {
+        batch.update(docSnap.ref, { read: true });
+      });
+      await batch.commit();
+      return;
+    } catch (e) {
+      console.warn('Error marking notifications as read in cloud:', e);
+    }
+  }
+
+  const all = getLocalNotifications();
+  const updated = all.map((n) => (n.recipientId === userId ? { ...n, read: true } : n));
+  setLocalNotifications(updated);
+}
+
+/**
+ * Real Follow / Unfollow System
+ */
+export async function toggleFollowUser(currentUser: User, targetUser: User): Promise<boolean> {
+  const isFollowing = currentUser.following?.includes(targetUser.id) ?? false;
+
+  if (db) {
+    try {
+      const userRef = doc(db, 'users', currentUser.id);
+      const targetRef = doc(db, 'users', targetUser.id);
+
+      await updateDoc(userRef, {
+        following: isFollowing ? arrayRemove(targetUser.id) : arrayUnion(targetUser.id),
+        followingCount: increment(isFollowing ? -1 : 1),
+      });
+
+      await updateDoc(targetRef, {
+        followers: isFollowing ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
+        followersCount: increment(isFollowing ? -1 : 1),
+      });
+
+      if (!isFollowing) {
+        await addNotification({
+          recipientId: targetUser.id,
+          sender: currentUser,
+          type: 'follow',
+        });
+      }
+
+      return !isFollowing;
+    } catch (e) {
+      console.warn('Follow toggle failed in cloud:', e);
+    }
+  }
+
+  return !isFollowing;
+}
+
+/**
+ * Real Dynamic Hashtag & Trends Engine
+ * Extracts all #hashtags from real posts in database!
+ */
+export function extractTrendsFromPosts(posts: Post[]): Trend[] {
+  const tagCounts: Record<string, number> = {};
+
+  posts.forEach((post) => {
+    const matches = post.content.match(/#([\p{L}\p{N}_]+)/gu);
+    if (matches) {
+      matches.forEach((tag) => {
+        const clean = tag.trim();
+        tagCounts[clean] = (tagCounts[clean] || 0) + 1;
+      });
+    }
+  });
+
+  const sortedTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  return sortedTags.map(([tag, count], idx) => ({
+    id: `trend-${idx + 1}`,
+    category: 'الرائج في GXE',
+    tag,
+    count,
+    postsCount: count === 1 ? 'منشور واحد' : `${count} منشورات`,
+  }));
+}
+
+/**
+ * Update User Profile
+ */
+export async function updateUserProfile(userId: string, updates: Partial<User>): Promise<void> {
+  if (db) {
+    try {
+      await updateDoc(doc(db, 'users', userId), updates);
+    } catch (e) {
+      console.warn('Error updating profile in cloud:', e);
+    }
+  }
 }

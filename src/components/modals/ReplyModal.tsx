@@ -36,7 +36,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      await addComment(post.id, currentUser, replyText.trim());
+      await addComment(post, currentUser, replyText.trim());
       setReplyText('');
       if (onNotify) onNotify('تم نشر الرد بنجاح!', 'success');
     } catch (err) {

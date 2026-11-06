@@ -78,42 +78,48 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-[#2f3336]/40">
-          {users.map((user) => {
-            const isSelected = selectedUser?.id === user.id;
-            return (
-              <div
-                key={user.id}
-                onClick={() => setSelectedUser(user)}
-                className={`p-3.5 flex items-center gap-3 cursor-pointer hover:bg-[#16181c] transition-colors ${
-                  isSelected ? 'bg-[#16181c]' : ''
-                }`}
-              >
-                <div className="relative">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full object-cover shrink-0"
-                  />
-                  {user.isOnline && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#00ba7c] border-2 border-black rounded-full" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm text-[#e7e9ea] truncate">{user.name}</span>
-                    {user.verified && (
-                      <span className="text-[#1d9bf0] text-xs font-bold mr-1">✓</span>
+          {users.length > 0 ? (
+            users.map((user) => {
+              const isSelected = selectedUser?.id === user.id;
+              return (
+                <div
+                  key={user.id}
+                  onClick={() => setSelectedUser(user)}
+                  className={`p-3.5 flex items-center gap-3 cursor-pointer hover:bg-[#16181c] transition-colors ${
+                    isSelected ? 'bg-[#16181c]' : ''
+                  }`}
+                >
+                  <div className="relative">
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-12 h-12 rounded-full object-cover shrink-0"
+                    />
+                    {user.isOnline && (
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#00ba7c] border-2 border-black rounded-full" />
                     )}
                   </div>
-                  <span className="text-xs text-[#71767b]">@{user.username}</span>
-                  <p className="text-xs text-[#71767b] truncate mt-0.5">
-                    {user.bio || 'انقر لبدء محادثة فورية'}
-                  </p>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-[#e7e9ea] truncate">{user.name}</span>
+                      {user.verified && (
+                        <span className="text-[#1d9bf0] text-xs font-bold mr-1">✓</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-[#71767b]">@{user.username}</span>
+                    <p className="text-xs text-[#71767b] truncate mt-0.5">
+                      {user.bio || 'انقر لبدء محادثة فورية'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="p-8 text-center text-xs text-[#71767b] leading-relaxed">
+              لا يوجد أعضاء آخرين مسجلين حالياً. بمجرد أن يسجل أي مستخدم آخر في الموقع سيظهر هنا للتحدث معه فوراً!
+            </div>
+          )}
         </div>
       </div>
 

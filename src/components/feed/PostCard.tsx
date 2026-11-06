@@ -78,13 +78,13 @@ export const PostCard: React.FC<PostCardProps> = ({
       }
     }
 
-    await toggleLike(post.id, currentUser.id);
+    await toggleLike(post, currentUser);
     setTimeout(() => setIsLiking(false), 300);
   };
 
   const handleRepost = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await toggleRepost(post.id, currentUser.id);
+    await toggleRepost(post, currentUser);
     if (onNotify) {
       onNotify(isReposted ? 'تم إلغاء إعادة النشر' : 'تمت إعادة النشر بنجاح 🔁', 'info');
     }

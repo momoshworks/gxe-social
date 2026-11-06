@@ -18,6 +18,7 @@ import logoImg from '../../assets/logo.png';
 interface NavigationSidebarProps {
   currentUser: User;
   activeTab: string;
+  unreadNotifsCount: number;
   setActiveTab: (tab: string) => void;
   onOpenComposer: () => void;
   onOpenCloudSettings: () => void;
@@ -28,6 +29,7 @@ interface NavigationSidebarProps {
 export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   currentUser,
   activeTab,
+  unreadNotifsCount,
   setActiveTab,
   onOpenComposer,
   onOpenCloudSettings,
@@ -39,7 +41,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   const navItems = [
     { id: 'home', label: 'الرئيسية', icon: Home },
     { id: 'explore', label: 'استكشاف', icon: Hash },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell, badge: 2 },
+    { id: 'notifications', label: 'الإشعارات', icon: Bell, badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined },
     { id: 'messages', label: 'الرسائل', icon: Mail },
     { id: 'bookmarks', label: 'العلامات المرجعية', icon: Bookmark },
     { id: 'profile', label: 'الملف الشخصي', icon: UserIcon },
