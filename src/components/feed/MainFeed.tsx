@@ -1,0 +1,155 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles, MessageSquareDashed } from 'lucide-react';
+import type { Post, User } from '../../types';
+import { PostComposer } from './PostComposer';
+import { PostCard } from './PostCard';
+import { NewPostsBanner } from './NewPostsBanner';
+
+interface MainFeedProps {
+  posts: Post[];
+  currentUser: User;
+  searchQuery: string;
+  onOpenReply: (post: Post) => void;
+  onOpenLightbox: (imageUrl: string, imageName?: string, imageSize?: string, content?: string) => void;
+  onNotify?: (text: string, type?: 'success' | 'info') => void;
+}
+
+export const MainFeed: React.FC<MainFeedProps> = ({
+  posts,
+  currentUser,
+  searchQuery,
+  onOpenReply,
+  onOpenLightbox,
+  onNotify,
+}) => {
+  const [feedTab, setFeedTab] = useState<'for_you' | 'following'>('for_you');
+  const [displayedPosts, setDisplayedPosts] = useState<Post[]>(posts);
+  const [newPostsCount, setNewPostsCount] = useState<number>(0);
+  const topAnchorRef = useRef<HTMLDivElement>(null);
+  const prevPostsCountRef = useRef<number>(posts.length);
+
+  // Handle incoming real-time posts
+  useEffect(() => {
+    // If initial load or user published, show directly
+    if (displayedPosts.length === 0) {
+      setDisplayedPosts(posts);
+      prevPostsCountRef.current = posts.length;
+      return;
+    }
+
+    // Check if new posts arrived
+    const isScrolledDown = window.scrollY > 200;
+    if (posts.length > prevPostsCountRef.current && isScrolledDown) {
+      const diff = posts.length - prevPostsCountRef.current;
+      setNewPostsCount((prev) => prev + diff);
+    } else {
+      // Auto update if user is near top
+      setDisplayedPosts(posts);
+      setNewPostsCount(0);
+    }
+
+    prevPostsCountRef.current = posts.length;
+  }, [posts]);
+
+  const handleShowNewPosts = () => {
+    setDisplayedPosts(posts);
+    setNewPostsCount(0);
+    topAnchorRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Filter posts based on search query or tab
+  const filteredPosts = displayedPosts.filter((post) => {
+    // Search query match
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const contentMatch = post.content.toLowerCase().includes(q);
+      const authorMatch = post.author.name.toLowerCase().includes(q) || post.author.username.toLowerCase().includes(q);
+      if (!contentMatch && !authorMatch) return false;
+    }
+
+    // Following tab: for demonstration, show subset or non-empty
+    if (feedTab === 'following') {
+      return post.author.id !== currentUser.id || post.likes > 50;
+    }
+
+    return true;
+  });
+
+  return (
+    <main className="flex-1 min-h-screen border-x border-[#2f3336] max-w-2xl w-full bg-[#000000]">
+      {/* Top anchor for smooth scrolling */}
+      <div ref={topAnchorRef} />
+
+      {/* Sticky Dual Header: لك (For You) & متابَعون (Following) */}
+      <div className="sticky top-0 z-30 bg-[#000000]/80 backdrop-blur-md border-b border-[#2f3336]">
+        <div className="px-4 py-3 flex items-center justify-between border-b border-[#2f3336]/40">
+          <h1 className="font-bold text-lg text-[#e7e9ea]">الرئيسية</h1>
+          <Sparkles className="w-5 h-5 text-[#1d9bf0] cursor-pointer hover:rotate-12 transition-transform" />
+        </div>
+
+        {/* Tabs */}
+        <div className="flex h-12">
+          <button
+            onClick={() => setFeedTab('for_you')}
+            className="flex-1 flex items-center justify-center relative hover:bg-[#181818]/50 transition-colors"
+          >
+            <span
+              className={`text-sm ${
+                feedTab === 'for_you' ? 'font-bold text-[#e7e9ea]' : 'font-medium text-[#71767b]'
+              }`}
+            >
+              لك
+            </span>
+            {feedTab === 'for_you' && (
+              <span className="absolute bottom-0 h-1 w-12 bg-[#1d9bf0] rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setFeedTab('following')}
+            className="flex-1 flex items-center justify-center relative hover:bg-[#181818]/50 transition-colors"
+          >
+            <span
+              className={`text-sm ${
+                feedTab === 'following' ? 'font-bold text-[#e7e9ea]' : 'font-medium text-[#71767b]'
+              }`}
+            >
+              متابَعون
+            </span>
+            {feedTab === 'following' && (
+              <span className="absolute bottom-0 h-1 w-16 bg-[#1d9bf0] rounded-full" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Floating Real-time New Posts Banner */}
+      <NewPostsBanner count={newPostsCount} onClick={handleShowNewPosts} />
+
+      {/* Post Creator Composer */}
+      <PostComposer currentUser={currentUser} onNotify={onNotify} />
+
+      {/* Posts Stream */}
+      {filteredPosts.length > 0 ? (
+        <div className="divide-y divide-[#2f3336]/60">
+          {filteredPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              currentUser={currentUser}
+              onOpenReply={onOpenReply}
+              onOpenLightbox={onOpenLightbox}
+              onNotify={onNotify}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="p-12 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
+          <MessageSquareDashed className="w-12 h-12 text-[#2f3336]" />
+          <p className="text-base font-semibold text-[#e7e9ea]">لا توجد منشورات مطابقة حالياً</p>
+          <p className="text-xs">جرّب كتابة منشور جديد أو تغيير كلمة البحث في الشريط الجانبي</p>
+        </div>
+      )}
+    </main>
+  );
+};

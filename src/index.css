@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    border-color: #2f3336;
+  }
+  
+  body {
+    background-color: #000000;
+    color: #e7e9ea;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cairo", "Tajawal", Helvetica, Arial, sans-serif;
+    overflow-y: scroll;
+    direction: rtl; /* Default Arabic RTL, switchable */
+  }
+
+  /* Custom scrollbar for sleek Twitter dark aesthetic */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2f3336;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #536471;
+  }
+}
+
+/* Animations */
+@keyframes heart-burst {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.animate-heart {
+  animation: heart-burst 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
