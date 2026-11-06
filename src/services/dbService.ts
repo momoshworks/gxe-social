@@ -714,3 +714,45 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
     }
   }
 }
+
+/**
+ * Real-time subscription to the user's document in Firestore
+ * Keeps followers, following, and counters in sync across all devices and reloads!
+ */
+export function subscribeToUserDoc(
+  userId: string,
+  onUpdate: (userData: Partial<User>) => void
+): Unsubscribe {
+  if (db && userId) {
+    try {
+      const userRef = doc(db, 'users', userId);
+      return onSnapshot(
+        userRef,
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            const following = data.following || [];
+            const followers = data.followers || [];
+            onUpdate({
+              name: data.name,
+              username: data.username,
+              avatar: data.avatar,
+              bio: data.bio,
+              coverUrl: data.coverUrl,
+              following,
+              followers,
+              followingCount: data.followingCount || following.length,
+              followersCount: data.followersCount || followers.length,
+            });
+          }
+        },
+        (err) => {
+          console.warn('User doc realtime subscription error:', err);
+        }
+      );
+    } catch (err) {
+      console.warn('Could not subscribe to user doc:', err);
+    }
+  }
+  return () => {};
+}

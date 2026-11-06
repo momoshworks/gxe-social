@@ -5,8 +5,9 @@ import {
   subscribeToNotifications,
   extractTrendsFromPosts,
   toggleFollowUser,
+  subscribeToUserDoc,
 } from './services/dbService';
-import { subscribeToAuthState, logoutUser, saveLocalUser } from './services/authService';
+import { subscribeToAuthState, logoutUser, saveLocalUser, getLocalSavedUser } from './services/authService';
 import { subscribeToCommunityUsers } from './services/messageService';
 import { playNotificationSound, showBrowserNotification } from './services/notificationService';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
@@ -27,18 +28,8 @@ import { Home, Hash, Bell, Mail, Feather, User as UserIcon, LogIn, LogOut } from
 import logoImg from './assets/logo.png';
 
 export const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User>({
-    id: 'guest_user_' + Math.floor(1000 + Math.random() * 9000),
-    name: 'مستخدم GXE',
-    username: 'gxe_user',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    verified: true,
-    bio: 'عضو في مجتمع GXE السحابي ⚡',
-    following: [],
-    followers: [],
-    followingCount: 0,
-    followersCount: 0,
-  });
+  // Always initialize from persisted local cache so followers and profile are loaded instantly (0ms) on reload
+  const [currentUser, setCurrentUser] = useState<User>(() => getLocalSavedUser());
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -71,6 +62,26 @@ export const App: React.FC = () => {
     });
     return () => unsub();
   }, []);
+
+  // Real-time synchronization of current user document in Firestore (followers, following, counters)
+  useEffect(() => {
+    if (!currentUser.id) return;
+    const unsub = subscribeToUserDoc(currentUser.id, (updates) => {
+      setCurrentUser((prev) => {
+        const merged: User = {
+          ...prev,
+          ...updates,
+          following: updates.following && updates.following.length > 0 ? updates.following : (prev.following || []),
+          followers: updates.followers && updates.followers.length > 0 ? updates.followers : (prev.followers || []),
+          followingCount: updates.followingCount ?? prev.followingCount,
+          followersCount: updates.followersCount ?? prev.followersCount,
+        };
+        saveLocalUser(merged);
+        return merged;
+      });
+    });
+    return () => unsub();
+  }, [currentUser.id]);
 
   // Subscribe to real-time posts from ALL users across the platform
   useEffect(() => {
