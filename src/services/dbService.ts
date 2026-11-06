@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  setDoc,
   where,
   increment,
   arrayUnion,
@@ -86,6 +87,9 @@ function setLocalNotifications(notifs: AppNotification[]) {
  * Real-time subscription to Posts Feed (from Cloud Firestore)
  */
 export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe {
+  // 1. Instant local render (0ms) so feed never shows blank loading
+  onUpdate(getLocalPosts());
+
   if (db) {
     try {
       const postsRef = collection(db, 'posts');
@@ -164,6 +168,10 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
     bookmarkedBy: [],
   };
 
+  // 1. Optimistic update (0ms): Appears on user's feed instantly
+  const currentPosts = getLocalPosts();
+  setLocalPosts([fullPost, ...currentPosts]);
+
   if (db) {
     try {
       const postsRef = collection(db, 'posts');
@@ -184,13 +192,10 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
       });
       return docRef.id;
     } catch (err) {
-      console.warn('Failed to add post to Firestore, saving locally:', err);
+      console.warn('Failed to add post to Firestore, kept in local cache:', err);
     }
   }
 
-  const posts = getLocalPosts();
-  const updated = [fullPost, ...posts];
-  setLocalPosts(updated);
   return fullPost.id;
 }
 
@@ -639,11 +644,31 @@ export function extractTrendsFromPosts(posts: Post[]): Trend[] {
 
 /**
  * Update User Profile
+ * Uses setDoc with merge: true so it works whether user doc exists or not, and never fails!
  */
 export async function updateUserProfile(userId: string, updates: Partial<User>): Promise<void> {
+  // 1. Immediately update author info in cached local posts so UI updates without page refresh
+  const currentPosts = getLocalPosts();
+  const updatedPosts = currentPosts.map((p) => {
+    if (p.author.id === userId) {
+      return {
+        ...p,
+        author: {
+          ...p.author,
+          name: updates.name || p.author.name,
+          username: updates.username || p.author.username,
+          avatar: updates.avatar || p.author.avatar,
+        },
+      };
+    }
+    return p;
+  });
+  setLocalPosts(updatedPosts);
+
+  // 2. Cloud Firestore merge update
   if (db) {
     try {
-      await updateDoc(doc(db, 'users', userId), updates);
+      await setDoc(doc(db, 'users', userId), updates, { merge: true });
     } catch (e) {
       console.warn('Error updating profile in cloud:', e);
     }

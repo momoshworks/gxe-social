@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, MessageCircle, ArrowRight, Search, Paperclip, X } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, ArrowRight, Search, Paperclip, X, FileText, Download } from 'lucide-react';
 import type { User, DirectMessage } from '../../types';
 import {
   subscribeToCommunityUsers,
   subscribeToChat,
   sendDirectMessage,
 } from '../../services/messageService';
-import { uploadMediaFile } from '../../services/storageService';
+import { uploadMediaFile, downloadFile } from '../../services/storageService';
 import { playNotificationSound } from '../../services/notificationService';
 
 interface MessagesViewProps {
@@ -292,12 +292,26 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                         }`}
                       >
                         {msg.mediaUrl && (
-                          <div className="mb-2 rounded-lg overflow-hidden max-h-60 bg-black">
-                            <img
-                              src={msg.mediaUrl}
-                              alt="مرفق محادثة"
-                              className="w-full h-auto object-cover"
-                            />
+                          <div className="mb-2 rounded-xl overflow-hidden">
+                            {msg.mediaUrl.startsWith('data:image/') || msg.mediaUrl.match(/\.(jpeg|jpg|png|webp|gif|svg)/i) ? (
+                              <img
+                                src={msg.mediaUrl}
+                                alt="مرفق صورة"
+                                className="w-full h-auto max-h-64 object-cover rounded-lg cursor-pointer hover:opacity-95"
+                                onClick={() => window.open(msg.mediaUrl, '_blank')}
+                              />
+                            ) : (
+                              <div
+                                onClick={() => downloadFile(msg.mediaUrl!, 'chat-attachment')}
+                                className="p-3 bg-black/40 hover:bg-black/60 rounded-xl border border-white/10 flex items-center justify-between gap-3 cursor-pointer transition-colors"
+                              >
+                                <div className="flex items-center gap-2.5 truncate">
+                                  <FileText className="w-5 h-5 text-white/80 shrink-0" />
+                                  <span className="text-xs font-medium truncate">مرفق ملف / مستند</span>
+                                </div>
+                                <Download className="w-4 h-4 text-white/80 shrink-0" />
+                              </div>
+                            )}
                           </div>
                         )}
                         {msg.text && <p className="whitespace-pre-wrap break-words">{msg.text}</p>}

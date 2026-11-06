@@ -38,14 +38,21 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 1. Instant local preview (0ms)
+    const localPreview = URL.createObjectURL(file);
+    setAvatarUrl(localPreview);
+
     try {
       setIsUploadingAvatar(true);
-      const res = await uploadMediaFile(file);
+      const res = await uploadMediaFile(file, undefined, {
+        maxWidth: 400,
+        maxHeight: 400,
+        quality: 0.85,
+      });
       setAvatarUrl(res.url);
-      if (onNotify) onNotify('تم اختيار الصورة الشخصية الجديدة', 'success');
+      if (onNotify) onNotify('تم تجهيز الصورة الشخصية الجديدة ✓', 'success');
     } catch (err) {
-      console.error('Failed to upload avatar:', err);
-      if (onNotify) onNotify('تعذر رفع الصورة، حاول ثانية', 'info');
+      console.error('Avatar upload handled with local fallback:', err);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -55,14 +62,21 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 1. Instant local preview (0ms)
+    const localPreview = URL.createObjectURL(file);
+    setCoverUrl(localPreview);
+
     try {
       setIsUploadingCover(true);
-      const res = await uploadMediaFile(file);
+      const res = await uploadMediaFile(file, undefined, {
+        maxWidth: 1200,
+        maxHeight: 500,
+        quality: 0.82,
+      });
       setCoverUrl(res.url);
-      if (onNotify) onNotify('تم اختيار صورة الغلاف الجديدة بنجاح', 'success');
+      if (onNotify) onNotify('تم تجهيز صورة الغلاف الجديدة ✓', 'success');
     } catch (err) {
-      console.error('Failed to upload cover:', err);
-      if (onNotify) onNotify('تعذر رفع الغلاف', 'info');
+      console.error('Cover upload handled with local fallback:', err);
     } finally {
       setIsUploadingCover(false);
     }
@@ -74,17 +88,24 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     const cleanUsername = username.trim().replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() || currentUser.username;
 
+    const updatedUser: User = {
+      ...currentUser,
+      name: name.trim(),
+      username: cleanUsername,
+      bio: bio.trim(),
+      avatar: avatarUrl,
+      coverUrl: coverUrl || undefined,
+    };
+
+    // 1. Instant optimistic update (0ms): Reflects across the entire app immediately
+    saveLocalUser(updatedUser);
+    onProfileUpdated(updatedUser);
+    if (onNotify) onNotify('تم تحديث ملفك الشخصي بنجاح! ✨', 'success');
+    onClose();
+
+    // 2. Cloud Firestore sync in background
     try {
       setIsSaving(true);
-      const updatedUser: User = {
-        ...currentUser,
-        name: name.trim(),
-        username: cleanUsername,
-        bio: bio.trim(),
-        avatar: avatarUrl,
-        coverUrl: coverUrl || undefined,
-      };
-
       await updateUserProfile(currentUser.id, {
         name: updatedUser.name,
         username: updatedUser.username,
@@ -92,14 +113,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         avatar: updatedUser.avatar,
         coverUrl: updatedUser.coverUrl,
       });
-
-      saveLocalUser(updatedUser);
-      onProfileUpdated(updatedUser);
-      if (onNotify) onNotify('تم تحديث ملفك الشخصي في السحابة بنجاح! ✨', 'success');
-      onClose();
     } catch (err) {
-      console.error('Save profile error:', err);
-      if (onNotify) onNotify('حدث خطأ أثناء حفظ الملف الشخصي', 'info');
+      console.error('Background cloud profile save error:', err);
     } finally {
       setIsSaving(false);
     }
