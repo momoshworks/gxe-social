@@ -7,12 +7,10 @@ import {
   Bookmark,
   User as UserIcon,
   Feather,
-  Cloud,
   LogIn,
   LogOut,
 } from 'lucide-react';
 import type { User } from '../../types';
-import { isCloudConnected } from '../../services/firebase';
 import logoImg from '../../assets/logo.png';
 
 interface NavigationSidebarProps {
@@ -21,7 +19,6 @@ interface NavigationSidebarProps {
   unreadNotifsCount: number;
   setActiveTab: (tab: string) => void;
   onOpenComposer: () => void;
-  onOpenCloudSettings: () => void;
   onOpenAuth: () => void;
   onLogout: () => void;
 }
@@ -32,23 +29,25 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   unreadNotifsCount,
   setActiveTab,
   onOpenComposer,
-  onOpenCloudSettings,
   onOpenAuth,
   onLogout,
 }) => {
-  const isConnected = isCloudConnected();
-
   const navItems = [
     { id: 'home', label: 'الرئيسية', icon: Home },
     { id: 'explore', label: 'استكشاف', icon: Hash },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell, badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined },
+    {
+      id: 'notifications',
+      label: 'الإشعارات',
+      icon: Bell,
+      badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined,
+    },
     { id: 'messages', label: 'الرسائل', icon: Mail },
     { id: 'bookmarks', label: 'العلامات المرجعية', icon: Bookmark },
     { id: 'profile', label: 'الملف الشخصي', icon: UserIcon },
   ];
 
   return (
-    <header className="flex flex-col justify-between h-screen sticky top-0 py-3 px-2 sm:px-4 md:px-6 w-16 sm:w-20 xl:w-64 select-none shrink-0 border-l border-[#2f3336]">
+    <header className="hidden md:flex flex-col justify-between h-screen sticky top-0 py-3 px-2 sm:px-4 md:px-6 w-16 sm:w-20 xl:w-64 select-none shrink-0 border-l border-[#2f3336]">
       {/* Top Section */}
       <div className="flex flex-col items-center xl:items-start gap-2">
         {/* GXE Logo & Brand */}
@@ -90,27 +89,6 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               </button>
             );
           })}
-
-          {/* Cloud Database Status & Config Button */}
-          <button
-            onClick={onOpenCloudSettings}
-            className="flex items-center gap-4 p-3 xl:px-4 xl:py-3 rounded-full transition-colors w-full text-[#e7e9ea] hover:bg-[#181818] group"
-          >
-            <div className="relative">
-              <Cloud className={`w-7 h-7 stroke-[1.8] ${isConnected ? 'text-[#00ba7c]' : 'text-[#ff9900]'}`} />
-              <span
-                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-black ${
-                  isConnected ? 'bg-[#00ba7c]' : 'bg-[#ff9900]'
-                }`}
-              />
-            </div>
-            <div className="hidden xl:flex flex-col text-right">
-              <span className="text-sm font-bold text-[#e7e9ea]">الربط السحابي</span>
-              <span className={`text-[11px] ${isConnected ? 'text-[#00ba7c]' : 'text-[#ff9900]'}`}>
-                {isConnected ? 'Firebase Realtime 🟢' : 'تجريبي محلي 🟡'}
-              </span>
-            </div>
-          </button>
         </nav>
 
         {/* Big Blue "Post" Button */}
@@ -123,15 +101,18 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         </button>
       </div>
 
-      {/* Bottom User Account Pill & Google Sign In */}
+      {/* Bottom User Account Pill & Login/Register */}
       <div className="relative my-2 w-full">
         {currentUser.email ? (
-          <div className="flex items-center justify-between w-full p-2.5 rounded-full hover:bg-[#181818] transition-colors group cursor-pointer text-right">
-            <div className="flex items-center gap-3 min-w-0" onClick={() => setActiveTab('profile')}>
+          <div className="flex items-center justify-between w-full p-2 rounded-full hover:bg-[#181818] transition-colors group cursor-pointer text-right">
+            <div
+              className="flex items-center gap-3 min-w-0"
+              onClick={() => setActiveTab('profile')}
+            >
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                className="w-10 h-10 rounded-full object-cover shrink-0"
+                className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#2f3336]"
               />
               <div className="hidden xl:flex flex-col leading-tight min-w-0">
                 <div className="flex items-center gap-1">
@@ -142,7 +123,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                     <span className="text-[#1d9bf0] text-xs font-bold">✓</span>
                   )}
                 </div>
-                <span className="text-xs text-[#71767b] truncate">@{currentUser.username}</span>
+                <span className="text-xs text-[#71767b] truncate" dir="ltr">
+                  @{currentUser.username}
+                </span>
               </div>
             </div>
 
@@ -157,11 +140,12 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         ) : (
           <button
             onClick={onOpenAuth}
-            className="flex items-center justify-center gap-2 w-full p-3 bg-white hover:bg-gray-200 text-black font-bold rounded-full text-xs shadow-md transition-all active:scale-95"
-            title="تسجيل حساب Google"
+            className="flex items-center justify-center gap-2 w-full p-2.5 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold rounded-full text-xs shadow-md transition-all active:scale-95"
+            title="تسجيل الدخول / إنشاء حساب"
           >
             <LogIn className="w-4 h-4" />
-            <span className="hidden xl:inline">حساب Google / دخول</span>
+            <span className="hidden xl:inline">تسجيل الدخول</span>
+            <span className="xl:hidden text-[10px] font-bold">دخول</span>
           </button>
         )}
       </div>

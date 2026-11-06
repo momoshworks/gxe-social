@@ -10,6 +10,7 @@ interface ProfileViewProps {
   onOpenReply: (post: Post) => void;
   onOpenLightbox: (imageUrl: string, imageName?: string, imageSize?: string, content?: string) => void;
   onProfileUpdated: (user: User) => void;
+  onOpenAuth?: () => void;
   onNotify?: (text: string, type?: 'success' | 'info') => void;
 }
 
@@ -19,6 +20,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenReply,
   onOpenLightbox,
   onProfileUpdated,
+  onOpenAuth,
   onNotify,
 }) => {
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'likes'>('posts');
@@ -65,13 +67,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             alt={currentUser.name}
             className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-black bg-black shadow-xl"
           />
-          <button
-            onClick={() => setIsEditModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2 rounded-full border border-[#536471] hover:bg-[#181818] text-[#e7e9ea] font-bold text-xs transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>تعديل الملف الشخصي</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {!currentUser.email && onOpenAuth && (
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold text-xs shadow-md transition-all active:scale-95"
+              >
+                <span>تسجيل الدخول</span>
+              </button>
+            )}
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full border border-[#536471] hover:bg-[#181818] text-[#e7e9ea] font-bold text-xs transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>تعديل الملف</span>
+            </button>
+          </div>
         </div>
 
         {/* User Info */}

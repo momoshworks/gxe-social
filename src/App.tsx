@@ -23,7 +23,8 @@ import { CloudSettingsModal } from './components/modals/CloudSettingsModal';
 import { AuthModal } from './components/modals/AuthModal';
 import { Toast, type ToastMessage } from './components/common/Toast';
 import { PwaUpdatePrompt } from './components/common/PwaUpdatePrompt';
-import { Home, Hash, Bell, Mail, Feather, User as UserIcon } from 'lucide-react';
+import { Home, Hash, Bell, Mail, Feather, User as UserIcon, LogIn, LogOut } from 'lucide-react';
+import logoImg from './assets/logo.png';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User>({
@@ -160,9 +161,56 @@ export const App: React.FC = () => {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#000000] text-[#e7e9ea] flex justify-center selection:bg-[#1d9bf0] selection:text-white">
+    <div className="min-h-screen bg-[#000000] text-[#e7e9ea] flex flex-col items-center selection:bg-[#1d9bf0] selection:text-white">
       {/* Auto Update Notification Banner */}
       <PwaUpdatePrompt />
+
+      {/* Mobile Top App Bar (Only visible on mobile browsers) */}
+      <div className="md:hidden sticky top-0 inset-x-0 w-full bg-[#000000]/95 backdrop-blur-md border-b border-[#2f3336] px-4 py-2.5 flex items-center justify-between z-40">
+        <div
+          className="flex items-center gap-2.5 cursor-pointer select-none"
+          onClick={() => {
+            setActiveTab('home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          <img src={logoImg} alt="GXE" className="w-8 h-8 object-contain" />
+          <span className="font-black text-lg text-[#e7e9ea] tracking-wider">GXE</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {currentUser.email ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('profile')}
+                className="flex items-center gap-1.5 p-0.5 rounded-full hover:bg-[#181818]"
+                title="الملف الشخصي"
+              >
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="w-8 h-8 rounded-full object-cover border border-[#2f3336]"
+                />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="p-1.5 text-[#71767b] hover:text-red-400 rounded-full"
+                title="تسجيل الخروج"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center gap-1.5 bg-[#1d9bf0] hover:bg-[#1a8cd8] active:scale-95 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md shadow-[#1d9bf0]/20 transition-all"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>تسجيل الدخول</span>
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Main 3-Column Layout Container */}
       <div className="flex w-full max-w-7xl justify-between min-h-screen pb-16 md:pb-0">
@@ -176,7 +224,6 @@ export const App: React.FC = () => {
             setActiveTab('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          onOpenCloudSettings={() => setIsCloudModalOpen(true)}
           onOpenAuth={() => setIsAuthModalOpen(true)}
           onLogout={handleLogout}
         />
@@ -241,6 +288,7 @@ export const App: React.FC = () => {
             onOpenReply={(post) => setReplyingPost(post)}
             onOpenLightbox={handleOpenLightbox}
             onProfileUpdated={(updated) => setCurrentUser(updated)}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
             onNotify={addToast}
           />
         )}
@@ -257,6 +305,22 @@ export const App: React.FC = () => {
           onNotify={addToast}
         />
       </div>
+
+      {/* Guest Floating Registration Banner (Mobile only) */}
+      {!currentUser.email && (
+        <div className="md:hidden fixed bottom-16 inset-x-2 bg-[#16181c]/95 border border-[#1d9bf0]/40 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between z-30 shadow-2xl animate-fade-in">
+          <div className="flex flex-col text-right pr-1">
+            <span className="text-xs font-bold text-[#e7e9ea]">انضم إلى مجتمع GXE 🚀</span>
+            <span className="text-[10px] text-[#71767b]">سجّل دخولك لحفظ ونشر التغريدات</span>
+          </div>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="bg-[#1d9bf0] hover:bg-[#1a8cd8] active:scale-95 text-white text-xs font-bold px-3 py-1.5 rounded-full shrink-0 shadow-md transition-all"
+          >
+            تسجيل الآن
+          </button>
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#000000]/95 backdrop-blur-md border-t border-[#2f3336] flex items-center justify-around py-3 z-40 px-2">
