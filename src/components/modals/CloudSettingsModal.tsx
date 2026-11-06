@@ -19,8 +19,8 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
 
   const [rawSnippet, setRawSnippet] = useState('');
   const [apiKey, setApiKey] = useState(currentConfig?.apiKey || '');
-  const [projectId, setProjectId] = useState(currentConfig?.projectId || '');
-  const [storageBucket, setStorageBucket] = useState(currentConfig?.storageBucket || '');
+  const [projectId, setProjectId] = useState(currentConfig?.projectId || 'project-442284585270');
+  const [storageBucket, setStorageBucket] = useState(currentConfig?.storageBucket || 'project-442284585270.appspot.com');
   const [appId, setAppId] = useState(currentConfig?.appId || '');
   const [copiedRules, setCopiedRules] = useState(false);
 
