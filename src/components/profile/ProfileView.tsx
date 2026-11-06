@@ -50,7 +50,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       </div>
 
       {/* Cover Banner */}
-      <div className="h-36 sm:h-48 bg-gradient-to-r from-[#1d9bf0]/30 via-[#00ba7c]/20 to-[#16181c] relative" />
+      <div className="h-36 sm:h-48 bg-gradient-to-r from-[#1d9bf0]/30 via-[#00ba7c]/20 to-[#16181c] relative overflow-hidden">
+        {currentUser.coverUrl && (
+          <img src={currentUser.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+        )}
+      </div>
 
       {/* Profile Details Container */}
       <div className="px-4 pb-4">

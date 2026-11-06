@@ -1,7 +1,8 @@
-import React from 'react';
-import { Heart, MessageCircle, Repeat, UserPlus, Bell, CheckCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, MessageCircle, Repeat, UserPlus, Bell, CheckCheck, BellRing } from 'lucide-react';
 import type { AppNotification } from '../../types';
 import { markNotificationsAsRead } from '../../services/dbService';
+import { requestNotificationPermission, playNotificationSound, showBrowserNotification } from '../../services/notificationService';
 
 interface NotificationsViewProps {
   notifications: AppNotification[];
@@ -15,6 +16,24 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   currentUserId,
   onNotify,
 }) => {
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission>(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  );
+
+  const handleEnablePush = async () => {
+    const granted = await requestNotificationPermission();
+    if (typeof Notification !== 'undefined') {
+      setBrowserPermission(Notification.permission);
+    }
+    if (granted) {
+      playNotificationSound();
+      showBrowserNotification('منصة GXE', 'تم تفعيل التنبيهات الفورية بنجاح على جهازك! 🔔');
+      if (onNotify) onNotify('تم تفعيل إشعارات المتصفح بنجاح! 🔔', 'success');
+    } else {
+      if (onNotify) onNotify('لم يتم منح إذن الإشعارات', 'info');
+    }
+  };
+
   const handleMarkAllRead = async () => {
     await markNotificationsAsRead(currentUserId);
     if (onNotify) onNotify('تم تحديد جميع الإشعارات كمقروءة', 'success');
@@ -54,16 +73,37 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           <Bell className="w-5 h-5 text-[#1d9bf0]" />
           <h1 className="font-bold text-lg text-[#e7e9ea]">الإشعارات</h1>
         </div>
-        {notifications.some((n) => !n.read) && (
-          <button
-            onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 text-xs text-[#1d9bf0] hover:underline font-semibold"
-          >
-            <CheckCheck className="w-4 h-4" />
-            <span>تحديد الكل كمقروء</span>
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {notifications.some((n) => !n.read) && (
+            <button
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-1.5 text-xs text-[#1d9bf0] hover:underline font-semibold"
+            >
+              <CheckCheck className="w-4 h-4" />
+              <span>تحديد الكل كمقروء</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Enable Browser Notification Banner if not granted */}
+      {browserPermission !== 'granted' && (
+        <div className="p-4 m-3 bg-[#16181c] border border-[#1d9bf0]/40 rounded-2xl flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <BellRing className="w-5 h-5 text-[#1d9bf0] shrink-0 animate-bounce" />
+            <div>
+              <p className="font-bold text-[#e7e9ea]">تفعيل التنبيهات الفورية على جهازك</p>
+              <p className="text-[#71767b]">استقبل تنبيهاً فورياً عند وصول أي رسالة أو تفاعل حتى لو كان الموقع مغلقاً.</p>
+            </div>
+          </div>
+          <button
+            onClick={handleEnablePush}
+            className="px-4 py-2 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold rounded-full transition-colors shrink-0"
+          >
+            تفعيل الآن
+          </button>
+        </div>
+      )}
 
       {/* Notifications List */}
       {notifications.length > 0 ? (
@@ -111,7 +151,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           <Bell className="w-14 h-14 text-[#2f3336]" />
           <h3 className="font-bold text-base text-[#e7e9ea]">لا توجد إشعارات جديدة</h3>
           <p className="text-xs max-w-xs">
-            عندما يتفاعل أي شخص مع منشوراتك أو يرسل لك رسالة أو يتابعك، ستظهر إشعاراتك اللحظية هنا فوراً!
+            عندما يتفاعل أي شخص مع منشوراتك أو يرسل لك رسالة خاصة أو يتابعك، ستظهر إشعاراتك اللحظية هنا فوراً!
           </p>
         </div>
       )}

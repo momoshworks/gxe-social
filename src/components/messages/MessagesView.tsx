@@ -1,32 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, MessageCircle, ArrowRight } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, ArrowRight, Search, Paperclip, X } from 'lucide-react';
 import type { User, DirectMessage } from '../../types';
 import {
   subscribeToCommunityUsers,
   subscribeToChat,
   sendDirectMessage,
 } from '../../services/messageService';
+import { uploadMediaFile } from '../../services/storageService';
+import { playNotificationSound } from '../../services/notificationService';
 
 interface MessagesViewProps {
   currentUser: User;
+  initialChatUser?: User | null;
   onNotify?: (text: string, type?: 'success' | 'info') => void;
 }
 
-export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotify }) => {
+export const MessagesView: React.FC<MessagesViewProps> = ({
+  currentUser,
+  initialChatUser,
+  onNotify,
+}) => {
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(initialChatUser || null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [inputText, setInputText] = useState('');
+  const [searchUserTerm, setSearchUserTerm] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // If initialChatUser changes, select it
+  useEffect(() => {
+    if (initialChatUser) {
+      setSelectedUser(initialChatUser);
+    }
+  }, [initialChatUser]);
 
   // Subscribe to community members
   useEffect(() => {
     const unsub = subscribeToCommunityUsers((communityList) => {
-      // Exclude self
       const otherMembers = communityList.filter((u) => u.id !== currentUser.id);
       setUsers(otherMembers);
-      if (!selectedUser && otherMembers.length > 0) {
+      if (!selectedUser && !initialChatUser && otherMembers.length > 0) {
         setSelectedUser(otherMembers[0]);
       }
     });
@@ -37,6 +55,13 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
   useEffect(() => {
     if (!selectedUser) return;
     const unsub = subscribeToChat(currentUser.id, selectedUser.id, (loadedMessages) => {
+      // If a new message arrived from other user, play sound
+      if (
+        loadedMessages.length > messages.length &&
+        loadedMessages[loadedMessages.length - 1]?.senderId === selectedUser.id
+      ) {
+        playNotificationSound();
+      }
       setMessages(loadedMessages);
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,14 +70,40 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
     return () => unsub();
   }, [currentUser.id, selectedUser]);
 
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => setFilePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || !selectedUser || isSending) return;
+    if ((!inputText.trim() && !selectedFile) || !selectedUser || isSending) return;
 
     try {
       setIsSending(true);
-      await sendDirectMessage(currentUser.id, selectedUser.id, inputText.trim());
+      let mediaUrl: string | undefined;
+
+      if (selectedFile) {
+        const uploadRes = await uploadMediaFile(selectedFile);
+        mediaUrl = uploadRes.url;
+      }
+
+      await sendDirectMessage(currentUser.id, selectedUser.id, inputText.trim(), mediaUrl);
+      playNotificationSound();
       setInputText('');
+      removeFile();
     } catch (e) {
       console.error('Failed to send direct message:', e);
       if (onNotify) onNotify('تعذر إرسال الرسالة، تحقق من الاتصال', 'info');
@@ -60,6 +111,17 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
       setIsSending(false);
     }
   };
+
+  // Filter users by search term (name, username, email)
+  const q = searchUserTerm.toLowerCase().trim();
+  const filteredUsers = users.filter((u) => {
+    if (!q) return true;
+    return (
+      u.name.toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q) ||
+      (u.email ? u.email.toLowerCase().includes(q) : false)
+    );
+  });
 
   return (
     <div className="flex-1 min-h-screen border-x border-[#2f3336] max-w-4xl w-full bg-[#000000] flex flex-col md:flex-row">
@@ -69,17 +131,31 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
           selectedUser ? 'hidden md:flex' : 'flex'
         }`}
       >
-        <div className="p-4 border-b border-[#2f3336] sticky top-0 bg-[#000000]/90 backdrop-blur-md z-10 flex items-center justify-between">
-          <h2 className="font-bold text-lg text-[#e7e9ea] flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-[#1d9bf0]" />
-            <span>الرسائل المباشرة</span>
-          </h2>
-          <span className="text-xs text-[#71767b]">{users.length} أعضاء</span>
+        <div className="p-3 border-b border-[#2f3336] sticky top-0 bg-[#000000]/90 backdrop-blur-md z-10 space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-lg text-[#e7e9ea] flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-[#1d9bf0]" />
+              <span>الرسائل المباشرة</span>
+            </h2>
+            <span className="text-xs text-[#71767b]">{filteredUsers.length} أعضاء</span>
+          </div>
+
+          {/* Search Bar for Users in Messages */}
+          <div className="relative flex items-center">
+            <Search className="absolute right-3 w-3.5 h-3.5 text-[#71767b]" />
+            <input
+              type="text"
+              value={searchUserTerm}
+              onChange={(e) => setSearchUserTerm(e.target.value)}
+              placeholder="ابحث بالاسم، المعرّف، أو الإيميل..."
+              className="w-full bg-[#16181c] border border-[#2f3336] rounded-full py-1.5 pr-9 pl-3 text-xs text-[#e7e9ea] placeholder-[#71767b] outline-none focus:border-[#1d9bf0]"
+            />
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-[#2f3336]/40">
-          {users.length > 0 ? (
-            users.map((user) => {
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => {
               const isSelected = selectedUser?.id === user.id;
               return (
                 <div
@@ -93,10 +169,10 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-12 h-12 rounded-full object-cover shrink-0"
+                      className="w-11 h-11 rounded-full object-cover shrink-0"
                     />
                     {user.isOnline && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#00ba7c] border-2 border-black rounded-full" />
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00ba7c] border-2 border-black rounded-full" />
                     )}
                   </div>
 
@@ -108,16 +184,16 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
                       )}
                     </div>
                     <span className="text-xs text-[#71767b]">@{user.username}</span>
-                    <p className="text-xs text-[#71767b] truncate mt-0.5">
-                      {user.bio || 'انقر لبدء محادثة فورية'}
-                    </p>
+                    {user.email && (
+                      <span className="text-[10px] text-[#71767b] block truncate">{user.email}</span>
+                    )}
                   </div>
                 </div>
               );
             })
           ) : (
             <div className="p-8 text-center text-xs text-[#71767b] leading-relaxed">
-              لا يوجد أعضاء آخرين مسجلين حالياً. بمجرد أن يسجل أي مستخدم آخر في الموقع سيظهر هنا للتحدث معه فوراً!
+              {q ? 'لا يوجد مستخدم يطابق بحثك' : 'لا يوجد أعضاء آخرين مسجلين حالياً.'}
             </div>
           )}
         </div>
@@ -152,47 +228,92 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
                       <span className="text-[#1d9bf0] text-xs font-bold">✓</span>
                     )}
                   </div>
-                  <span className="text-xs text-[#71767b]">@{selectedUser.username}</span>
+                  <div className="flex items-center gap-2 text-xs text-[#71767b]">
+                    <span>@{selectedUser.username}</span>
+                    {selectedUser.email && (
+                      <span className="text-[11px] text-[#1d9bf0]">({selectedUser.email})</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="text-xs bg-[#00ba7c]/10 text-[#00ba7c] px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-[#00ba7c]" />
-                  <span>متصل لحظياً</span>
+                  <span>محادثة خاصة مشفرة</span>
                 </span>
               </div>
             </div>
 
-            {/* Messages Body */}
+            {/* Messages Stream */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#000000]">
-              {messages.map((msg) => {
-                const isMe = msg.senderId === currentUser.id;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
-                  >
+              {messages.length > 0 ? (
+                messages.map((msg) => {
+                  const isMe = msg.senderId === currentUser.id;
+                  return (
                     <div
-                      className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                        isMe
-                          ? 'bg-[#1d9bf0] text-white rounded-bl-sm'
-                          : 'bg-[#202327] text-[#e7e9ea] rounded-br-sm'
-                      }`}
+                      key={msg.id}
+                      className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                     >
-                      {msg.text}
+                      <div
+                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                          isMe
+                            ? 'bg-[#1d9bf0] text-white rounded-bl-sm'
+                            : 'bg-[#202327] text-[#e7e9ea] rounded-br-sm'
+                        }`}
+                      >
+                        {msg.mediaUrl && (
+                          <div className="mb-2 rounded-lg overflow-hidden max-h-60 bg-black">
+                            <img
+                              src={msg.mediaUrl}
+                              alt="مرفق محادثة"
+                              className="w-full h-auto object-cover"
+                            />
+                          </div>
+                        )}
+                        {msg.text && <p className="whitespace-pre-wrap break-words">{msg.text}</p>}
+                      </div>
+                      <span className="text-[10px] text-[#71767b] mt-1 px-1">
+                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-[#71767b] mt-1 px-1">
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#71767b]">
+                  <MessageCircle className="w-12 h-12 text-[#2f3336] mb-2" />
+                  <p className="text-sm font-semibold text-[#e7e9ea]">
+                    هذه بداية محادثتك الخاصة مع {selectedUser.name}
+                  </p>
+                  <p className="text-xs mt-1">الرسائل تتبادل وتُحفظ لحظياً في الوقت الفعلي.</p>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
+
+            {/* File Preview before sending */}
+            {selectedFile && (
+              <div className="px-4 py-2 bg-[#16181c] border-t border-[#2f3336] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  {filePreview && (
+                    <img
+                      src={filePreview}
+                      alt="معاينة"
+                      className="w-8 h-8 rounded object-cover border border-[#2f3336]"
+                    />
+                  )}
+                  <span className="text-[#1d9bf0] truncate max-w-xs font-medium">
+                    مرفق: {selectedFile.name}
+                  </span>
+                </div>
+                <button onClick={removeFile} className="p-1 hover:text-red-400">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
             {/* Message Input Box */}
             <form
@@ -200,15 +321,30 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
               className="p-3 border-t border-[#2f3336] bg-[#000000] flex items-center gap-2"
             >
               <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFilePick}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2.5 text-[#71767b] hover:text-[#1d9bf0] hover:bg-[#181818] rounded-full transition-colors"
+                title="إرفاق صورة أو ملف"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+
+              <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="اكتب رسالتك..."
+                placeholder="اكتب رسالة خاصة..."
                 className="flex-1 bg-[#202327] text-[#e7e9ea] placeholder-[#71767b] text-sm px-4 py-2.5 rounded-full outline-none border border-transparent focus:border-[#1d9bf0] focus:bg-[#000000] transition-colors"
               />
               <button
                 type="submit"
-                disabled={!inputText.trim() || isSending}
+                disabled={(!inputText.trim() && !selectedFile) || isSending}
                 className="p-2.5 rounded-full bg-[#1d9bf0] text-white hover:bg-[#1a8cd8] active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-md shadow-[#1d9bf0]/20"
                 title="إرسال"
               >
@@ -225,7 +361,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, onNotif
             <MessageCircle className="w-14 h-14 text-[#2f3336] mb-3" />
             <h3 className="text-lg font-bold text-[#e7e9ea]">اختر محادثة للبدء</h3>
             <p className="text-xs max-w-xs mt-1">
-              اختر أحد أعضاء مجتمع GXE من القائمة لبدء تبادل الرسائل في الوقت الفعلي.
+              اختر أحد أعضاء مجتمع GXE أو ابحث عن مستخدم بالاسم أو المعرّف أو الإيميل.
             </p>
           </div>
         )}

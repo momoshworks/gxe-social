@@ -3,6 +3,7 @@ export interface User {
   name: string;
   username: string;
   avatar: string;
+  coverUrl?: string;
   email?: string;
   verified?: boolean;
   bio?: string;

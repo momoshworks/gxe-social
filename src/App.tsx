@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Post, User, AppNotification, Trend } from './types';
 import {
   subscribeToPosts,
@@ -8,6 +8,7 @@ import {
 } from './services/dbService';
 import { subscribeToAuthState, logoutUser } from './services/authService';
 import { subscribeToCommunityUsers } from './services/messageService';
+import { playNotificationSound, showBrowserNotification } from './services/notificationService';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
 import { MainFeed } from './components/feed/MainFeed';
 import { ExploreView } from './components/explore/ExploreView';
@@ -43,7 +44,10 @@ export const App: React.FC = () => {
   const [communityUsers, setCommunityUsers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedChatUser, setSelectedChatUser] = useState<User | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const prevNotifsCountRef = useRef<number>(0);
 
   // Modals state
   const [lightboxData, setLightboxData] = useState<{
@@ -79,6 +83,12 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!currentUser.id) return;
     const unsub = subscribeToNotifications(currentUser.id, (loadedNotifs) => {
+      // If new unread notification arrived
+      if (loadedNotifs.length > prevNotifsCountRef.current && loadedNotifs[0] && !loadedNotifs[0].read) {
+        playNotificationSound();
+        showBrowserNotification('GXE إشعار جديد', `${loadedNotifs[0].sender.name} تفاعل مع حسابك!`);
+      }
+      prevNotifsCountRef.current = loadedNotifs.length;
       setNotifications(loadedNotifs);
     });
     return () => unsub();
@@ -116,6 +126,12 @@ export const App: React.FC = () => {
     setSearchQuery(tag);
     setActiveTab('explore');
     addToast(`تم تصفية المنشورات بواسطة ${tag}`, 'info');
+  };
+
+  const handleStartChat = (user: User) => {
+    setSelectedChatUser(user);
+    setActiveTab('messages');
+    addToast(`بدء محادثة خاصة مع ${user.name}`, 'info');
   };
 
   const handleToggleFollow = async (targetUser: User) => {
@@ -181,10 +197,13 @@ export const App: React.FC = () => {
           <ExploreView
             posts={posts}
             trends={dynamicTrends}
+            communityUsers={communityUsers}
             currentUser={currentUser}
             onOpenReply={(post) => setReplyingPost(post)}
             onOpenLightbox={handleOpenLightbox}
             onSelectTag={handleSelectTag}
+            onStartChat={handleStartChat}
+            onToggleFollow={handleToggleFollow}
             onNotify={addToast}
           />
         )}
@@ -198,7 +217,11 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'messages' && (
-          <MessagesView currentUser={currentUser} onNotify={addToast} />
+          <MessagesView
+            currentUser={currentUser}
+            initialChatUser={selectedChatUser}
+            onNotify={addToast}
+          />
         )}
 
         {activeTab === 'bookmarks' && (
