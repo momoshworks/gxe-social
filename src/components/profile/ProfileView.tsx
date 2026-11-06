@@ -3,13 +3,17 @@ import { Calendar, Edit3, Image as ImageIcon, Heart, MessageSquare } from 'lucid
 import type { Post, User } from '../../types';
 import { PostCard } from '../feed/PostCard';
 import { EditProfileModal } from '../modals/EditProfileModal';
+import { FollowListModal } from '../modals/FollowListModal';
 
 interface ProfileViewProps {
   currentUser: User;
   posts: Post[];
+  communityUsers?: User[];
   onOpenReply: (post: Post) => void;
   onOpenLightbox: (imageUrl: string, imageName?: string, imageSize?: string, content?: string) => void;
   onProfileUpdated: (user: User) => void;
+  onToggleFollow?: (user: User) => void;
+  onStartChat?: (user: User) => void;
   onOpenAuth?: () => void;
   onNotify?: (text: string, type?: 'success' | 'info') => void;
 }
@@ -17,14 +21,24 @@ interface ProfileViewProps {
 export const ProfileView: React.FC<ProfileViewProps> = ({
   currentUser,
   posts,
+  communityUsers = [],
   onOpenReply,
   onOpenLightbox,
   onProfileUpdated,
+  onToggleFollow,
+  onStartChat,
   onOpenAuth,
   onNotify,
 }) => {
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'likes'>('posts');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('following');
+
+  const openFollowModal = (tab: 'followers' | 'following') => {
+    setFollowModalTab(tab);
+    setIsFollowModalOpen(true);
+  };
 
   // Filter posts
   const myPosts = posts.filter((p) => p.author.id === currentUser.id);
@@ -107,14 +121,29 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
           </div>
 
-          {/* Followers & Following Counters */}
-          <div className="flex items-center gap-4 text-xs">
-            <span className="text-[#71767b]">
-              <strong className="text-[#e7e9ea] ml-1">{currentUser.followingCount || 0}</strong> متابَعاً
-            </span>
-            <span className="text-[#71767b]">
-              <strong className="text-[#e7e9ea] ml-1">{currentUser.followersCount || 0}</strong> متابِعاً
-            </span>
+          {/* Followers & Following Counters (Interactive & Clickable!) */}
+          <div className="flex items-center gap-5 text-xs select-none">
+            <button
+              onClick={() => openFollowModal('following')}
+              className="hover:underline flex items-center gap-1.5 text-[#71767b] cursor-pointer group"
+              title="عرض قائمة الحسابات التي تتابعها"
+            >
+              <strong className="text-[#e7e9ea] font-bold group-hover:text-[#1d9bf0] transition-colors">
+                {currentUser.followingCount ?? currentUser.following?.length ?? 0}
+              </strong>
+              <span>يُتابع (أتابعهم)</span>
+            </button>
+
+            <button
+              onClick={() => openFollowModal('followers')}
+              className="hover:underline flex items-center gap-1.5 text-[#71767b] cursor-pointer group"
+              title="عرض قائمة المتابعين لحسابك"
+            >
+              <strong className="text-[#e7e9ea] font-bold group-hover:text-[#1d9bf0] transition-colors">
+                {currentUser.followersCount ?? currentUser.followers?.length ?? 0}
+              </strong>
+              <span>المتابعون (يتابعونني)</span>
+            </button>
           </div>
         </div>
       </div>
@@ -197,6 +226,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         onClose={() => setIsEditModalOpen(false)}
         onProfileUpdated={onProfileUpdated}
         onNotify={onNotify}
+      />
+
+      {/* Followers & Following List Modal */}
+      <FollowListModal
+        isOpen={isFollowModalOpen}
+        initialTab={followModalTab}
+        profileUser={currentUser}
+        currentUser={currentUser}
+        communityUsers={communityUsers}
+        onClose={() => setIsFollowModalOpen(false)}
+        onToggleFollow={onToggleFollow || (() => {})}
+        onStartChat={onStartChat}
       />
     </main>
   );

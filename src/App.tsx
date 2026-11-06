@@ -6,7 +6,7 @@ import {
   extractTrendsFromPosts,
   toggleFollowUser,
 } from './services/dbService';
-import { subscribeToAuthState, logoutUser } from './services/authService';
+import { subscribeToAuthState, logoutUser, saveLocalUser } from './services/authService';
 import { subscribeToCommunityUsers } from './services/messageService';
 import { playNotificationSound, showBrowserNotification } from './services/notificationService';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
@@ -138,17 +138,38 @@ export const App: React.FC = () => {
   const handleToggleFollow = async (targetUser: User) => {
     const isNowFollowing = await toggleFollowUser(currentUser, targetUser);
     const updatedFollowing = isNowFollowing
-      ? [...(currentUser.following || []), targetUser.id]
+      ? Array.from(new Set([...(currentUser.following || []), targetUser.id]))
       : (currentUser.following || []).filter((id) => id !== targetUser.id);
 
-    setCurrentUser((prev) => ({
-      ...prev,
+    const updatedCurrentUser: User = {
+      ...currentUser,
       following: updatedFollowing,
-      followingCount: Math.max(0, (prev.followingCount || 0) + (isNowFollowing ? 1 : -1)),
-    }));
+      followingCount: updatedFollowing.length,
+    };
+
+    setCurrentUser(updatedCurrentUser);
+    saveLocalUser(updatedCurrentUser);
+
+    // Also update target user in communityUsers state for instant UI reflection
+    setCommunityUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === targetUser.id) {
+          const followers = u.followers || [];
+          const updatedFollowers = isNowFollowing
+            ? Array.from(new Set([...followers, currentUser.id]))
+            : followers.filter((id) => id !== currentUser.id);
+          return {
+            ...u,
+            followers: updatedFollowers,
+            followersCount: updatedFollowers.length,
+          };
+        }
+        return u;
+      })
+    );
 
     addToast(
-      isNowFollowing ? `أصبحت تتابع ${targetUser.name} الآن!` : `ألغيت متابعة ${targetUser.name}`,
+      isNowFollowing ? `أصبحت تتابع ${targetUser.name} الآن! ✨` : `ألغيت متابعة ${targetUser.name}`,
       'info'
     );
   };
@@ -285,9 +306,12 @@ export const App: React.FC = () => {
           <ProfileView
             currentUser={currentUser}
             posts={posts}
+            communityUsers={communityUsers}
             onOpenReply={(post) => setReplyingPost(post)}
             onOpenLightbox={handleOpenLightbox}
             onProfileUpdated={(updated) => setCurrentUser(updated)}
+            onToggleFollow={handleToggleFollow}
+            onStartChat={handleStartChat}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             onNotify={addToast}
           />

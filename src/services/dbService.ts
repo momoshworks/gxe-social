@@ -577,39 +577,79 @@ export async function markNotificationsAsRead(userId: string): Promise<void> {
 /**
  * Real Follow / Unfollow System
  */
+/**
+ * Real Follow / Unfollow System
+ * Persists permanently to Firestore and localStorage
+ */
 export async function toggleFollowUser(currentUser: User, targetUser: User): Promise<boolean> {
-  const isFollowing = currentUser.following?.includes(targetUser.id) ?? false;
+  const currentFollowing = currentUser.following || [];
+  const isFollowing = currentFollowing.includes(targetUser.id);
+  const newIsFollowing = !isFollowing;
 
+  // Updated following list for current user
+  const updatedCurrentUserFollowing = newIsFollowing
+    ? Array.from(new Set([...currentFollowing, targetUser.id]))
+    : currentFollowing.filter((id) => id !== targetUser.id);
+
+  // Updated followers list for target user
+  const targetFollowers = targetUser.followers || [];
+  const updatedTargetFollowers = newIsFollowing
+    ? Array.from(new Set([...targetFollowers, currentUser.id]))
+    : targetFollowers.filter((id) => id !== currentUser.id);
+
+  // 1. Permanent Local Storage Persistence (0ms)
+  try {
+    const raw = localStorage.getItem('gxe_current_user');
+    const parsed = raw ? JSON.parse(raw) : currentUser;
+    localStorage.setItem(
+      'gxe_current_user',
+      JSON.stringify({
+        ...parsed,
+        following: updatedCurrentUserFollowing,
+        followingCount: updatedCurrentUserFollowing.length,
+      })
+    );
+  } catch (e) {
+    console.error('Save local user following error:', e);
+  }
+
+  // 2. Cloud Firestore Persistence via setDoc merge so it never throws error
   if (db) {
     try {
       const userRef = doc(db, 'users', currentUser.id);
       const targetRef = doc(db, 'users', targetUser.id);
 
-      await updateDoc(userRef, {
-        following: isFollowing ? arrayRemove(targetUser.id) : arrayUnion(targetUser.id),
-        followingCount: increment(isFollowing ? -1 : 1),
-      });
+      await setDoc(
+        userRef,
+        {
+          following: updatedCurrentUserFollowing,
+          followingCount: updatedCurrentUserFollowing.length,
+        },
+        { merge: true }
+      );
 
-      await updateDoc(targetRef, {
-        followers: isFollowing ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
-        followersCount: increment(isFollowing ? -1 : 1),
-      });
+      await setDoc(
+        targetRef,
+        {
+          followers: updatedTargetFollowers,
+          followersCount: updatedTargetFollowers.length,
+        },
+        { merge: true }
+      );
 
-      if (!isFollowing) {
+      if (newIsFollowing) {
         await addNotification({
           recipientId: targetUser.id,
           sender: currentUser,
           type: 'follow',
         });
       }
-
-      return !isFollowing;
     } catch (e) {
-      console.warn('Follow toggle failed in cloud:', e);
+      console.warn('Follow toggle cloud sync fallback:', e);
     }
   }
 
-  return !isFollowing;
+  return newIsFollowing;
 }
 
 /**
