@@ -18,10 +18,10 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
   const currentConfig = getSavedConfig();
 
   const [rawSnippet, setRawSnippet] = useState('');
-  const [apiKey, setApiKey] = useState(currentConfig?.apiKey || '');
-  const [projectId, setProjectId] = useState(currentConfig?.projectId || 'project-442284585270');
-  const [storageBucket, setStorageBucket] = useState(currentConfig?.storageBucket || 'project-442284585270.appspot.com');
-  const [appId, setAppId] = useState(currentConfig?.appId || '');
+  const [apiKey, setApiKey] = useState(currentConfig?.apiKey || 'AIzaSyBNs-r-pL6HJcDrxqGWLAPmTjhTLger1zU');
+  const [projectId, setProjectId] = useState(currentConfig?.projectId || 'gxe-app');
+  const [storageBucket, setStorageBucket] = useState(currentConfig?.storageBucket || 'gxe-app.firebasestorage.app');
+  const [appId, setAppId] = useState(currentConfig?.appId || '1:442284585270:web:98b8c6350555eef3f7c397');
   const [copiedRules, setCopiedRules] = useState(false);
 
   if (!isOpen) return null;

@@ -4,9 +4,19 @@ import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { getAuth, type Auth } from 'firebase/auth';
 import type { FirebaseConfig } from '../types';
 
-const STORAGE_KEY = 'x_social_firebase_config';
+const STORAGE_KEY = 'gxe_firebase_config';
 
-export function getSavedConfig(): FirebaseConfig | null {
+// The official GXE cloud project config
+export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
+  apiKey: "AIzaSyBNs-r-pL6HJcDrxqGWLAPmTjhTLger1zU",
+  authDomain: "gxe-app.firebaseapp.com",
+  projectId: "gxe-app",
+  storageBucket: "gxe-app.firebasestorage.app",
+  messagingSenderId: "442284585270",
+  appId: "1:442284585270:web:98b8c6350555eef3f7c397",
+};
+
+export function getSavedConfig(): FirebaseConfig {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -16,7 +26,7 @@ export function getSavedConfig(): FirebaseConfig | null {
     console.error('Failed to parse saved Firebase config', e);
   }
 
-  // Check if env variables exist
+  // Check if custom env variables exist
   if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_PROJECT_ID) {
     return {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -28,7 +38,7 @@ export function getSavedConfig(): FirebaseConfig | null {
     };
   }
 
-  return null;
+  return DEFAULT_FIREBASE_CONFIG;
 }
 
 export function saveFirebaseConfig(config: FirebaseConfig): void {
@@ -61,4 +71,4 @@ if (config && config.apiKey && config.projectId) {
 }
 
 export { app, db, storage, auth };
-export const isCloudConnected = () => db !== null;
+export const isCloudConnected = () => db !== null && auth !== null;
