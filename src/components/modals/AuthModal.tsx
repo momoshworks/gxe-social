@@ -286,6 +286,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               : 'ليس لديك حساب؟ إنشاء حساب جديد في GXE'}
           </button>
         </div>
+
+        {/* Legal & Privacy Policy Link */}
+        <p className="mt-4 text-[10px] text-[#71767b] text-center leading-relaxed">
+          بتسجيل الدخول أو استخدام المنصة، فإنك توافق على{' '}
+          <a
+            href="./privacy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#00f0ff] hover:underline font-semibold"
+          >
+            سياسة الخصوصية
+          </a>{' '}
+          وشروط الاستخدام لـ GXE.
+        </p>
       </div>
     </div>
   );

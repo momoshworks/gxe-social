@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>سياسة الخصوصية • Privacy Policy | GXE</title>
+  <link rel="icon" type="image/png" href="./logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #111317;
+      --border: #22262c;
+      --text-main: #e7e9ea;
+      --text-muted: #8b949e;
+      --accent: #00f0ff;
+      --accent-green: #00ba7c;
+      --accent-gradient: linear-gradient(135deg, #00f0ff, #00ba7c);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.8;
+      padding: 0;
+      margin: 0;
+    }
+    .header {
+      border-b: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .brand span {
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1.5rem 5rem 1.5rem;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding: 2.5rem 1.5rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero .meta {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 1rem;
+    }
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      margin-bottom: 1.75rem;
+    }
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 1.2rem;
+      background: var(--accent-green);
+      border-radius: 2px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 1.2rem 0 0.5rem 0;
+    }
+    p, li {
+      color: #c9d1d9;
+      font-size: 0.98rem;
+      margin-bottom: 0.75rem;
+    }
+    ul {
+      list-style-type: disc;
+      padding-right: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: 0.4rem;
+    }
+    .en-block {
+      direction: ltr;
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+      border-top: 1px dashed var(--border);
+      padding-top: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .en-block h3 {
+      color: var(--accent);
+    }
+    .en-block ul {
+      padding-left: 1.5rem;
+      padding-right: 0;
+    }
+    .highlight-box {
+      background: rgba(0, 186, 124, 0.08);
+      border: 1px solid rgba(0, 186, 124, 0.25);
+      border-radius: 0.85rem;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+    .contact-card {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.05), rgba(0, 186, 124, 0.05));
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .contact-card a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .contact-card a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="header">
+    <a href="./" class="brand">
+      <img src="./logo.png" alt="GXE Logo" />
+      <span>GXE Social</span>
+    </a>
+    <div class="nav-links">
+      <a href="./">الرئيسية (App)</a>
+      <a href="#contact">تواصل معنا</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>سياسة الخصوصية • Privacy Policy</h1>
+      <div class="meta">
+        تطبيق GXE Social • Package ID: <code>com.gxe.social</code>
+        <br />
+        تاريخ آخر تحديث: 7 نوفمبر 2026 (Last Updated: November 7, 2026)
+      </div>
+      <div class="badge">متوافقة مع معايير Google Play Console وسياسات الأمان العالمية GDPR & CCPA</div>
+    </div>
+
+    <!-- Section 1: Overview -->
+    <div class="section-card">
+      <h2>1. نظرة عامة وتطبيق GXE (Introduction)</h2>
+      <p>
+        توضح سياسة الخصوصية هذه كيفية قيام تطبيق <strong>GXE Social</strong> ("نحن"، "التطبيق"، أو "المنصة"، والمتاح كخدمة ويب وكحزمة أندرويد <code>com.gxe.social</code>) بجمع واستخدام وحماية وإدارة بياناتك الشخصية عند استخدامك لخدماتنا.
+      </p>
+      <p>
+        نحن نلتزم بأعلى معايير حماية الخصوصية واحترام حقوق المستخدمين. لن نقوم ببيع أو تأجير بياناتك الشخصية لأي طرف ثالث تحت أي ظرف.
+      </p>
+
+      <div class="en-block">
+        <h3>English Summary:</h3>
+        <p>
+          This Privacy Policy explains how <strong>GXE Social</strong> ("we", "us", or "the App", package: <code>com.gxe.social</code>) collects, uses, and safeguards your personal data. We do not sell or monetize your personal data to third parties.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 2: Data Collected -->
+    <div class="section-card">
+      <h2>2. البيانات التي نقوم بجمعها (Information We Collect)</h2>
+      <p>نقوم بجمع الحد الأدنى والضروري فقط من المعلومات لتقديم تجربة تواصل اجتماعي آمنة وسلسة:</p>
+      <ul>
+        <li>
+          <strong>بيانات الحساب والملف الشخصي (Account Information):</strong>
+          عند تسجيل الدخول عبر حساب Google أو البريد الإلكتروني، نتلقى اسمك، بريدك الإلكتروني، صورتك الرمزية (Avatar)، ومُعرّف الحساب الفريد (UID).
+        </li>
+        <li>
+          <strong>المحتوى الذي تنشئه (User-Generated Content):</strong>
+          المنشورات (النبضات)، الصور والملفات المرفقة، التعليقات، الإعجابات، وإعادة النشر التي تشاركها طواعية على المنصة.
+        </li>
+        <li>
+          <strong>المحادثات والرسائل المباشرة (Direct Messages):</strong>
+          الرسائل النصية والوسائط المتبادلة بينك وبين المستخدمين الآخرين لتمكين التراسل الفوري الآمن.
+        </li>
+        <li>
+          <strong>بيانات الاستخدام والجهاز (Device & Technical Data):</strong>
+          بيانات تشخيصية فنية بسيطة (نوع المتصفح، نظام التشغيل Android، سجلات الأخطاء) للمساعدة في تحسين أداء التطبيق وحل الأعطال.
+        </li>
+      </ul>
+
+      <div class="en-block">
+        <h3>Information We Collect:</h3>
+        <ul>
+          <li><strong>Account Data:</strong> Name, email address, profile picture (via Google Sign-in / Firebase Auth).</li>
+          <li><strong>User Content:</strong> Posts, uploaded images/files, comments, likes, and bookmarks.</li>
+          <li><strong>Direct Messages:</strong> 1-on-1 private messages between platform members.</li>
+          <li><strong>Technical Data:</strong> Basic device type, operating system version, and error crash logs.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 3: How We Use Data -->
+    <div class="section-card">
+      <h2>3. كيف نستخدم معلوماتك (How We Use Your Information)</h2>
+      <p>نستخدم البيانات التي نجمعها للأغراض التالية فقط:</p>
+      <ul>
+        <li>تمكينك من نشر المحتوى ومتابعة المستخدمين والتفاعل المباشر.</li>
+        <li>إرسال الإشعارات التنبيهية الفورية حول الردود، والرسائل، والنبضات الجديدة من الأشخاص الذين تتابعهم.</li>
+        <li>تأمين حسابك ومنع السلوكيات المسيئة أو الاحتيالية على المنصة.</li>
+        <li>مزامنة بياناتك في الوقت الحقيقي عبر جميع أجهزتك (الهاتف، المتصفح، والكمبيوتر).</li>
+      </ul>
+
+      <div class="en-block">
+        <h3>How We Use Your Information:</h3>
+        <ul>
+          <li>To operate and maintain social features, posts feed, and direct chat.</li>
+          <li>To deliver real-time notifications about likes, comments, and messages.</li>
+          <li>To authenticate user identity securely and prevent abuse.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 4: Data Storage, Security & Third Parties -->
+    <div class="section-card">
+      <h2>4. حفظ البيانات، الأمان والخدمات السحابية (Storage & Security)</h2>
+      <div class="highlight-box">
+        <strong>🔒 أمان مشفر ومتكامل:</strong>
+        يتم تخزين جميع البيانات والاتصالات السحابية عبر خوادم شركة <strong>Google Cloud / Google Firebase</strong> وفقاً لأعلى بروتوكولات الأمان العالمية وتشفير البيانات أثناء النقل (TLS 1.3 / HTTPS) وأثناء التخزين (Encrypted at Rest).
+      </div>
+      <p>خدمات الطرف الثالث المعتمدة في التطبيق:</p>
+      <ul>
+        <li><strong>Google Firebase Authentication:</strong> لإدارة تسجيل الدخول الآمن بحساب Google.</li>
+        <li><strong>Google Cloud Firestore:</strong> كقاعدة بيانات سحابية لحظية مشفرة.</li>
+        <li><strong>Google Cloud Storage:</strong> لتخزين الصور والوسائط المرفوعة بشكل آمن.</li>
+      </ul>
+
+      <div class="en-block">
+        <h3>Third-Party Service Providers:</h3>
+        <p>
+          We rely on certified infrastructure from <strong>Google Firebase</strong> (Authentication, Firestore Database, and Cloud Storage). All communication is encrypted via TLS 1.3 / HTTPS.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 5: User Rights & Data Deletion -->
+    <div class="section-card">
+      <h2>5. حذف الحساب والبيانات وحقوق المستخدم (Data Deletion & Rights)</h2>
+      <p>
+        لك كامل الحق والحرية في التحكم ببياناتك في أي وقت طبقاً لسياسات Google Play وحماية البيانات:
+      </p>
+      <ul>
+        <li><strong>حذف المنشورات والرسائل:</strong> يمكنك حذف أي منشور أو تعليق أو صورة قمت بمشاركتها فوراً بنقرة واحدة داخل التطبيق.</li>
+        <li><strong>حذف الحساب والبيانات نهائياً (Account Deletion):</strong> يمكنك طلب حذف حسابك بالكامل وكافة بياناتك الشخصية من خوادم قاعدة البيانات عبر إرسال بريد إلكتروني بسيط إلى: <code>momosh991@gmail.com</code> بعنوان "طلب حذف حساب GXE"، وسيتم مسح كافة سجلاتك وبياناتك فوراً خلال مدة لا تتجاوز 48 ساعة.</li>
+      </ul>
+
+      <div class="en-block">
+        <h3>Account & Data Deletion Policy:</h3>
+        <p>
+          Users can delete individual posts and media directly within the app. You can also request complete deletion of your account and all associated data at any time by sending an email to <code>momosh991@gmail.com</code> with the subject "GXE Data Deletion Request". Requests are permanently fulfilled within 48 hours.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 6: Children's Privacy -->
+    <div class="section-card">
+      <h2>6. خصوصية الأطفال (Children's Privacy)</h2>
+      <p>
+        تطبيق GXE غير موجه للأطفال دون سن 13 عاماً، ولا نقوم عن قصد بجمع أي بيانات شخصية يمكن التعرف عليها من أي طفل. في حال علمنا بوجود بيانات لطفل دون موافقة ولي الأمر، يتم حذفها فوراً.
+      </p>
+
+      <div class="en-block">
+        <h3>Children's Privacy:</h3>
+        <p>
+          Our application is not targeted towards children under the age of 13. We do not knowingly collect personal information from children under 13.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 7: Contact Us -->
+    <div class="contact-card" id="contact">
+      <h2>7. التواصل ومسؤول الخصوصية (Contact Developer)</h2>
+      <p>
+        إذا كانت لديك أي استفسارات أو أسئلة بشأن سياسة الخصوصية هذه أو ممارسات البيانات الخاصة بتطبيق GXE، يُرجى التواصل معنا عبر البريد المعتمد للمطور:
+      </p>
+      <p style="margin-top: 1rem; font-size: 1.1rem;">
+        📧 البريد الإلكتروني: <a href="mailto:momosh991@gmail.com">momosh991@gmail.com</a>
+      </p>
+      <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+        المطور والمالك: Momosh Works • تطبيق GXE Social (com.gxe.social)
+      </p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 GXE Social Platform • جميع الحقوق محفوظة.</p>
+  </footer>
+
+</body>
+</html>

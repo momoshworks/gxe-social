@@ -162,10 +162,9 @@ export const TrendsSidebar: React.FC<TrendsSidebarProps> = ({
 
       {/* Footer Info */}
       <footer className="px-4 py-2 text-[11px] text-[#71767b] flex flex-wrap gap-x-2 gap-y-1">
-        <a href="#" className="hover:underline">شروط الخدمة</a>
-        <a href="#" className="hover:underline">سياسة الخصوصية</a>
-        <a href="#" className="hover:underline">ملفات تعريف الارتباط</a>
-        <span>© 2026 GXE Corp.</span>
+        <a href="./privacy.html" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-[#00f0ff] transition-colors">سياسة الخصوصية</a>
+        <a href="./privacy.html" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-[#00f0ff] transition-colors">شروط الخدمة والأمان</a>
+        <span>© 2026 GXE Social.</span>
       </footer>
     </aside>
   );
