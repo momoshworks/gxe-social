@@ -119,7 +119,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="ماذا يدور في عقلك الآن؟ اهري براحتك..."
+          placeholder="ماذا يدور في عقلك الآن؟ افتي براحتك..."
           rows={3}
           className="w-full bg-transparent text-[#e7e9ea] placeholder-[#71767b] text-lg outline-none resize-none leading-relaxed border-none focus:ring-0"
         />
@@ -255,12 +255,12 @@ export const PostComposer: React.FC<PostComposerProps> = ({
               {isSubmitting ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>جاري الهري...</span>
+                  <span>جاري الفتي...</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 fill-current" />
-                  <span>إطلاق هارية ⚡</span>
+                  <span>افتي ⚡</span>
                 </>
               )}
             </button>

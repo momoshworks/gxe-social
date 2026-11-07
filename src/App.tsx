@@ -137,8 +137,8 @@ export const App: React.FC = () => {
               notifTab = 'home';
               break;
             case 'comment':
-              notifTitle = `💬 تعليق من ${newest.sender.name}`;
-              notifBody = `علق على هاريتك: "${(newest.postContent || '').substring(0, 60)}"`;
+              notifTitle = `💬 هاري جديد من ${newest.sender.name}`;
+              notifBody = `هَرَى على هاريتك: "${(newest.postContent || '').substring(0, 60)}"`;
               notifTab = 'home';
               break;
             case 'repost':

@@ -309,19 +309,19 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           {/* Social Action Bar */}
           <div className="mt-3 flex items-center justify-between max-w-md text-[#71767b]">
-            {/* Reply */}
+            {/* Reply / Hary */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenReply(post);
               }}
-              className="flex items-center gap-1.5 hover:text-[#1d9bf0] transition-colors group/btn"
-              title="الرد"
+              className="flex items-center gap-1.5 hover:text-[#00f0ff] transition-colors group/btn"
+              title="الهاري"
             >
-              <div className="p-1.5 rounded-full group-hover/btn:bg-[#1d9bf0]/10">
+              <div className="p-1.5 rounded-full group-hover/btn:bg-[#00f0ff]/10">
                 <MessageCircle className="w-4 h-4" />
               </div>
-              <span className="text-xs">{post.commentsCount || 0}</span>
+              <span className="text-xs">{post.commentsCount || 0} هاري</span>
             </button>
 
             {/* Repost */}

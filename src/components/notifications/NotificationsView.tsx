@@ -59,7 +59,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
       case 'like':
         return 'أعجب بهاريتك';
       case 'comment':
-        return 'علق على هاريتك:';
+        return 'هَرَى على هاريتك:';
       case 'repost':
         return 'أعاد نشر هاريتك';
       case 'follow':

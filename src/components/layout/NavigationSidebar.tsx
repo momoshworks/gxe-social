@@ -99,13 +99,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           })}
         </nav>
 
-        {/* Distinctive GXE Action Button: "إطلاق هارية • Hary" */}
+        {/* Distinctive GXE Action Button: "افتي • Efti" */}
         <button
           onClick={onOpenComposer}
           className="mt-4 w-full bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] hover:opacity-95 active:scale-95 text-black rounded-full font-black p-3 xl:py-3.5 flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#00f0ff]/25 border border-white/20"
         >
           <Zap className="w-5 h-5 fill-current" />
-          <span className="hidden xl:inline text-base tracking-wide">إطلاق هارية ⚡</span>
+          <span className="hidden xl:inline text-base tracking-wide">افتي ⚡</span>
         </button>
 
         {/* Direct Download Android APK */}

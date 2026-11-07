@@ -62,11 +62,11 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="font-bold text-base text-[#e7e9ea]">الرد على الهارية</h2>
+            <h2 className="font-bold text-base text-[#e7e9ea]">الهاري على الهارية</h2>
           </div>
           <span className="text-xs text-[#71767b] flex items-center gap-1">
-            <MessageCircle className="w-3.5 h-3.5" />
-            <span>{comments.length} ردود</span>
+            <MessageCircle className="w-3.5 h-3.5 text-[#00f0ff]" />
+            <span className="text-[#00f0ff] font-bold">{comments.length} هاري</span>
           </span>
         </div>
 
@@ -102,9 +102,9 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
           </div>
 
           {/* Previous Comments List */}
-          {comments.length > 0 && (
+          {comments.length > 0 ? (
             <div className="space-y-3 pt-1 border-t border-[#2f3336]/60">
-              <h3 className="text-xs font-semibold text-[#71767b] px-1">الردود السابقة:</h3>
+              <h3 className="text-xs font-semibold text-[#71767b] px-1">كل الهاري على البوست ({comments.length}):</h3>
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3 bg-[#0d0f12] p-3 rounded-xl border border-[#2f3336]/40">
                   <img
@@ -127,6 +127,10 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="py-6 text-center text-xs text-[#71767b] border-t border-[#2f3336]/40">
+              لا يوجد هاري بعد على هذه الهارية. افتي بأول هاري وشارك رأيك!
+            </div>
           )}
         </div>
 
@@ -142,7 +146,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="غرّد بردّك..."
+                placeholder="اهري برأيك هنا أو افتي..."
                 rows={2}
                 className="w-full bg-transparent text-[#e7e9ea] placeholder-[#71767b] resize-none outline-none text-sm leading-relaxed"
                 autoFocus
@@ -154,17 +158,17 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
                 <button
                   type="submit"
                   disabled={!replyText.trim() || isSubmitting}
-                  className="flex items-center gap-1.5 px-4 py-1.5 bg-[#1d9bf0] text-white rounded-full font-bold text-xs hover:bg-[#1a8cd8] disabled:opacity-50 disabled:pointer-events-none transition-all shadow-md"
+                  className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-[#00f0ff] to-[#00ba7c] text-black rounded-full font-black text-xs hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-md cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
                       <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                      <span>جاري الإرسال...</span>
+                      <span>جاري الفتي...</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>رد</span>
+                      <span>افتي بالهاري</span>
                     </>
                   )}
                 </button>

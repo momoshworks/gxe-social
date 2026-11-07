@@ -79,10 +79,42 @@ function getLocalComments(): Comment[] {
   return [];
 }
 
-function setLocalComments(comments: Comment[]) {
-  localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+// Local in-memory listeners for active post comments
+const localCommentListeners = new Map<string, Set<(comments: Comment[]) => void>>();
+
+function notifyLocalCommentListeners(postId: string, comments: Comment[]) {
+  const listeners = localCommentListeners.get(postId);
+  if (listeners) {
+    const postComments = comments.filter((c) => c.postId === postId);
+    listeners.forEach((listener) => {
+      try {
+        listener(postComments);
+      } catch (e) {
+        console.warn('Local comment listener error:', e);
+      }
+    });
+  }
+}
+
+function setLocalComments(comments: Comment[], targetPostId?: string) {
+  try {
+    localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(comments));
+  } catch (e) {
+    console.warn('Storage quota exceeded:', e);
+  }
+
+  // 1. Notify current window listeners immediately (0ms)
+  if (targetPostId) {
+    notifyLocalCommentListeners(targetPostId, comments);
+  } else {
+    localCommentListeners.forEach((_, pid) => {
+      notifyLocalCommentListeners(pid, comments);
+    });
+  }
+
+  // 2. Broadcast to other tabs
   if (channel) {
-    channel.postMessage({ type: 'COMMENTS_UPDATED', comments });
+    channel.postMessage({ type: 'COMMENTS_UPDATED', comments, postId: targetPostId });
   }
 }
 
@@ -394,32 +426,64 @@ export async function toggleBookmark(postId: string, userId: string): Promise<bo
 }
 
 /**
- * Comments subscription
+ * Comments subscription (Zero composite index required - fully visible to all users across cloud)
  */
 export function subscribeToComments(postId: string, onUpdate: (comments: Comment[]) => void): Unsubscribe {
+  // 1. Immediate local render (0ms)
+  const localInitial = getLocalComments().filter((c) => c.postId === postId);
+  onUpdate(localInitial);
+
+  // 2. Register local in-memory listener
+  if (!localCommentListeners.has(postId)) {
+    localCommentListeners.set(postId, new Set());
+  }
+  localCommentListeners.get(postId)!.add(onUpdate);
+
+  let unsubFirestore: Unsubscribe = () => {};
+
+  // 3. Real-time Cloud Firestore query without 'orderBy' (NEVER requires composite index, visible to everyone!)
   if (db) {
     try {
       const commentsRef = collection(db, 'comments');
-      const q = query(commentsRef, where('postId', '==', postId), orderBy('createdAt', 'asc'));
+      const q = query(commentsRef, where('postId', '==', postId));
 
-      return onSnapshot(
+      unsubFirestore = onSnapshot(
         q,
         (snapshot) => {
-          const list: Comment[] = [];
+          const cloudList: Comment[] = [];
           snapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            list.push({
+            cloudList.push({
               id: docSnap.id,
               postId: data.postId,
               author: data.author,
               text: data.text,
-              createdAt: data.createdAt,
+              createdAt: data.createdAt || Date.now(),
               likes: data.likes || 0,
             });
           });
-          onUpdate(list);
+
+          // Sort by timestamp in memory
+          cloudList.sort((a, b) => a.createdAt - b.createdAt);
+
+          // Merge with local comments so fresh submissions are never wiped
+          const allLocal = getLocalComments();
+          const thisPostLocal = allLocal.filter((c) => c.postId === postId);
+          const map = new Map<string, Comment>();
+          thisPostLocal.forEach((c) => map.set(c.id, c));
+          cloudList.forEach((c) => map.set(c.id, c));
+          const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
+
+          // Update cache with merged
+          const otherLocal = allLocal.filter((c) => c.postId !== postId);
+          try {
+            localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify([...otherLocal, ...merged]));
+          } catch {}
+
+          onUpdate(merged);
         },
-        () => {
+        (error) => {
+          console.warn('Comments cloud subscription notice (using cache):', error);
           const all = getLocalComments();
           onUpdate(all.filter((c) => c.postId === postId));
         }
@@ -428,9 +492,6 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
       console.warn('Comments subscription fallback:', e);
     }
   }
-
-  const all = getLocalComments();
-  onUpdate(all.filter((c) => c.postId === postId));
 
   const handleMessage = (event: MessageEvent) => {
     if (event.data?.type === 'COMMENTS_UPDATED') {
@@ -444,6 +505,8 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
   }
 
   return () => {
+    localCommentListeners.get(postId)?.delete(onUpdate);
+    unsubFirestore();
     if (channel) {
       channel.removeEventListener('message', handleMessage);
     }
@@ -451,7 +514,7 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
 }
 
 /**
- * Add a Comment to a Post
+ * Add a Comment to a Post (Visible to everyone!)
  */
 export async function addComment(post: Post, author: User, text: string): Promise<Comment> {
   const newComment: Comment = {
@@ -463,41 +526,12 @@ export async function addComment(post: Post, author: User, text: string): Promis
     likes: 0,
   };
 
-  if (db) {
-    try {
-      await addDoc(collection(db, 'comments'), {
-        postId: newComment.postId,
-        author: newComment.author,
-        text: newComment.text,
-        createdAt: newComment.createdAt,
-        likes: 0,
-      });
+  // 1. Optimistic instant local save (0ms) - instantly updates UI
+  const currentComments = getLocalComments();
+  const updatedComments = [...currentComments, newComment];
+  setLocalComments(updatedComments, post.id);
 
-      const postRef = doc(db, 'posts', post.id);
-      await updateDoc(postRef, {
-        commentsCount: increment(1),
-      });
-
-      // Notification
-      if (post.author.id !== author.id) {
-        await addNotification({
-          recipientId: post.author.id,
-          sender: author,
-          type: 'comment',
-          postId: post.id,
-          postContent: text.substring(0, 60),
-        });
-      }
-
-      return newComment;
-    } catch (err) {
-      console.warn('Failed to add comment to Firestore, saving locally:', err);
-    }
-  }
-
-  const comments = getLocalComments();
-  setLocalComments([...comments, newComment]);
-
+  // Update local post comments counter
   const posts = getLocalPosts();
   const updatedPosts = posts.map((p) => {
     if (p.id === post.id) {
@@ -507,14 +541,49 @@ export async function addComment(post: Post, author: User, text: string): Promis
   });
   setLocalPosts(updatedPosts);
 
-  if (post.author.id !== author.id) {
-    addNotification({
-      recipientId: post.author.id,
-      sender: author,
-      type: 'comment',
-      postId: post.id,
-      postContent: text.substring(0, 60),
-    });
+  // 2. Cloud Firestore sync with timeout race so it never blocks or fails silently
+  if (db) {
+    try {
+      const addDocPromise = addDoc(collection(db, 'comments'), {
+        postId: newComment.postId,
+        author: newComment.author,
+        text: newComment.text,
+        createdAt: newComment.createdAt,
+        likes: 0,
+      });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 3500)
+      );
+
+      const docRef = await Promise.race([addDocPromise, timeoutPromise]);
+      if (docRef && (docRef as any).id) {
+        newComment.id = (docRef as any).id;
+      }
+
+      // Update counter in Firestore
+      try {
+        const postRef = doc(db, 'posts', post.id);
+        await updateDoc(postRef, {
+          commentsCount: increment(1),
+        });
+      } catch (countErr) {
+        console.warn('Could not increment post commentsCount in cloud:', countErr);
+      }
+
+      // Send Notification to post author
+      if (post.author.id !== author.id) {
+        await addNotification({
+          recipientId: post.author.id,
+          sender: author,
+          type: 'comment',
+          postId: post.id,
+          postContent: text.substring(0, 60),
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to add comment to Firestore, kept safely in local cache:', err);
+    }
   }
 
   return newComment;
