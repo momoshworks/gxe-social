@@ -64,9 +64,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           <div className="hidden xl:flex flex-col leading-tight">
             <span className="text-xl font-black tracking-wider text-white flex items-center gap-1.5">
               <span>GXE</span>
-              <span className="text-[10px] bg-[#00f0ff]/15 text-[#00f0ff] border border-[#00f0ff]/30 px-1.5 py-0.5 rounded-full font-bold">PULSE</span>
+              <span className="text-[10px] bg-[#00f0ff]/15 text-[#00f0ff] border border-[#00f0ff]/30 px-1.5 py-0.5 rounded-full font-bold">HARY</span>
             </span>
-            <span className="text-[11px] text-[#71767b]">شبكة النبض الحي</span>
+            <span className="text-[11px] text-[#71767b]">منصة الهري الأولى</span>
           </div>
         </div>
 
@@ -99,13 +99,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           })}
         </nav>
 
-        {/* Distinctive GXE Action Button: "إطلاق نبضة • Pulse" */}
+        {/* Distinctive GXE Action Button: "إطلاق هارية • Hary" */}
         <button
           onClick={onOpenComposer}
           className="mt-4 w-full bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] hover:opacity-95 active:scale-95 text-black rounded-full font-black p-3 xl:py-3.5 flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#00f0ff]/25 border border-white/20"
         >
           <Zap className="w-5 h-5 fill-current" />
-          <span className="hidden xl:inline text-base tracking-wide">إطلاق نبضة ⚡</span>
+          <span className="hidden xl:inline text-base tracking-wide">إطلاق هارية ⚡</span>
         </button>
 
         {/* Direct Download Android APK */}

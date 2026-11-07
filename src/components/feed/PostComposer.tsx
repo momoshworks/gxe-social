@@ -84,11 +84,11 @@ export const PostComposer: React.FC<PostComposerProps> = ({
       removeSelectedFile();
       setUploadProgress(null);
 
-      if (onNotify) onNotify('تم نشر التغريدة بنجاح! 🚀', 'success');
+      if (onNotify) onNotify('تم نشر الهارية بنجاح! 🚀', 'success');
       if (onPostCreated) onPostCreated();
     } catch (error) {
       console.error('Failed to publish post:', error);
-      if (onNotify) onNotify('حدث خطأ أثناء النشر، حاول مجدداً', 'info');
+      if (onNotify) onNotify('حدث خطأ أثناء الهري، حاول مجدداً', 'info');
     } finally {
       setIsSubmitting(false);
       setUploadProgress(null);
@@ -119,7 +119,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="ماذا يدور في عقلك الآن؟ أطلق نبضتك للعالم..."
+          placeholder="ماذا يدور في عقلك الآن؟ اهري براحتك..."
           rows={3}
           className="w-full bg-transparent text-[#e7e9ea] placeholder-[#71767b] text-lg outline-none resize-none leading-relaxed border-none focus:ring-0"
         />
@@ -222,9 +222,10 @@ export const PostComposer: React.FC<PostComposerProps> = ({
             </button>
 
             <button
-              onClick={() => onNotify && onNotify('ميزة الجدولة الزمنية للمنشورات قادمة!', 'info')}
+              type="button"
+              onClick={() => onNotify && onNotify('ميزة جدولة الهري قادمة قريباً!', 'info')}
               className="p-2 hover:bg-[#1d9bf0]/10 rounded-full transition-colors"
-              title="جدولة النشر"
+              title="جدولة الهري"
             >
               <Calendar className="w-5 h-5" />
             </button>
@@ -254,12 +255,12 @@ export const PostComposer: React.FC<PostComposerProps> = ({
               {isSubmitting ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>جاري الإطلاق...</span>
+                  <span>جاري الهري...</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 fill-current" />
-                  <span>إطلاق النبضة</span>
+                  <span>إطلاق هارية ⚡</span>
                 </>
               )}
             </button>

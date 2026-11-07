@@ -57,11 +57,11 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   const getActionText = (type: AppNotification['type']) => {
     switch (type) {
       case 'like':
-        return 'أعجب بمنشورك';
+        return 'أعجب بهاريتك';
       case 'comment':
-        return 'علق على منشورك:';
+        return 'علق على هاريتك:';
       case 'repost':
-        return 'أعاد نشر منشورك';
+        return 'أعاد نشر هاريتك';
       case 'follow':
         return 'بدأ بمتابعتك الآن';
       case 'message':
@@ -155,7 +155,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           <Bell className="w-14 h-14 text-[#2f3336]" />
           <h3 className="font-bold text-base text-[#e7e9ea]">لا توجد إشعارات جديدة</h3>
           <p className="text-xs max-w-xs">
-            عندما يتفاعل أي شخص مع منشوراتك أو يرسل لك رسالة خاصة أو يتابعك، ستظهر إشعاراتك اللحظية هنا فوراً!
+            عندما يتفاعل أي شخص مع هريِك أو يرسل لك رسالة خاصة أو يتابعك، ستظهر إشعاراتك اللحظية هنا فوراً!
           </p>
         </div>
       )}

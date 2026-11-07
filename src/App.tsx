@@ -97,7 +97,7 @@ export const App: React.FC = () => {
           (currentUser.following || []).includes(latestPost.author.id)
         ) {
           playNotificationSound();
-          showBrowserNotification(`📢 ${latestPost.author.name} نشر تغريدة جديدة`, {
+          showBrowserNotification(`📢 ${latestPost.author.name} رمى هارية جديدة`, {
             body: latestPost.content.substring(0, 90),
             icon: latestPost.author.avatar,
             tag: `gxe-post-${latestPost.id}`,
@@ -133,17 +133,17 @@ export const App: React.FC = () => {
               break;
             case 'like':
               notifTitle = `❤️ إعجاب جديد من ${newest.sender.name}`;
-              notifBody = `أعجب بمنشورك: "${(newest.postContent || '').substring(0, 45)}"`;
+              notifBody = `أعجب بهاريتك: "${(newest.postContent || '').substring(0, 45)}"`;
               notifTab = 'home';
               break;
             case 'comment':
               notifTitle = `💬 تعليق من ${newest.sender.name}`;
-              notifBody = `"${(newest.postContent || '').substring(0, 60)}"`;
+              notifBody = `علق على هاريتك: "${(newest.postContent || '').substring(0, 60)}"`;
               notifTab = 'home';
               break;
             case 'repost':
-              notifTitle = `🔄 إعادة نشر من ${newest.sender.name}`;
-              notifBody = `أعاد نشر تغريدتك: "${(newest.postContent || '').substring(0, 45)}"`;
+              notifTitle = `🔄 إعادة هري من ${newest.sender.name}`;
+              notifBody = `أعاد نشر هاريتك: "${(newest.postContent || '').substring(0, 45)}"`;
               notifTab = 'home';
               break;
             case 'follow':
@@ -220,7 +220,7 @@ export const App: React.FC = () => {
   const handleSelectTag = (tag: string) => {
     setSearchQuery(tag);
     setActiveTab('explore');
-    addToast(`تم تصفية المنشورات بواسطة ${tag}`, 'info');
+    addToast(`تم تصفية الهري بواسطة ${tag}`, 'info');
   };
 
   const handleStartChat = (user: User) => {
@@ -451,7 +451,7 @@ export const App: React.FC = () => {
         <div className="md:hidden fixed bottom-16 inset-x-2 bg-[#16181c]/95 border border-[#1d9bf0]/40 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between z-30 shadow-2xl animate-fade-in">
           <div className="flex flex-col text-right pr-1">
             <span className="text-xs font-bold text-[#e7e9ea]">انضم إلى مجتمع GXE 🚀</span>
-            <span className="text-[10px] text-[#71767b]">سجّل دخولك لحفظ ونشر التغريدات</span>
+            <span className="text-[10px] text-[#71767b]">سجّل دخولك لحفظ ونشر الهري</span>
           </div>
           <button
             onClick={() => setIsAuthModalOpen(true)}

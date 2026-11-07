@@ -87,10 +87,10 @@ export const MainFeed: React.FC<MainFeedProps> = ({
       <div className="sticky top-0 z-30 bg-[#000000]/85 backdrop-blur-md border-b border-[#2f3336]">
         <div className="px-4 py-3 flex items-center justify-between border-b border-[#2f3336]/40">
           <div className="flex items-center gap-2">
-            <h1 className="font-extrabold text-lg text-white">شريان النبضات</h1>
+            <h1 className="font-extrabold text-lg text-white">شريان الهري</h1>
             <span className="flex items-center gap-1 text-[11px] font-semibold text-[#00ba7c] bg-[#00ba7c]/10 border border-[#00ba7c]/30 px-2 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#00ba7c] animate-ping" />
-              <span>نبض مباشر</span>
+              <span>هري مباشر</span>
             </span>
           </div>
           <Sparkles className="w-5 h-5 text-[#00f0ff]" />
@@ -123,7 +123,7 @@ export const MainFeed: React.FC<MainFeedProps> = ({
                 feedTab === 'following' ? 'font-bold text-white' : 'font-medium text-[#71767b]'
               }`}
             >
-              النبضات المتابعة ({currentUser.following?.length || 0})
+              هري المتابعين ({currentUser.following?.length || 0})
             </span>
             {feedTab === 'following' && (
               <span className="absolute bottom-0 h-1 w-20 bg-gradient-to-r from-[#00f0ff] to-[#00ba7c] rounded-full shadow-sm shadow-[#00ba7c]/50" />
@@ -163,17 +163,17 @@ export const MainFeed: React.FC<MainFeedProps> = ({
       ) : feedTab === 'following' ? (
         <div className="p-16 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
           <Users className="w-12 h-12 text-[#2f3336]" />
-          <p className="text-base font-semibold text-[#e7e9ea]">لا توجد منشورات من الأشخاص الذين تتابعهم</p>
+          <p className="text-base font-semibold text-[#e7e9ea]">لا يوجد هري من الأشخاص الذين تتابعهم</p>
           <p className="text-xs max-w-xs">
-            تصفح تبويب (لك) أو قائمة (اقتراحات المتابعة) لمتابعة المستخدمين ورؤية منشوراتهم الحصرية هنا!
+            تصفح تبويب (لك) أو قائمة (اقتراحات المتابعة) لمتابعة المستخدمين ورؤية هريِهم الحصري هنا!
           </p>
         </div>
       ) : (
         <div className="p-16 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
           <MessageSquareDashed className="w-12 h-12 text-[#2f3336]" />
-          <p className="text-base font-semibold text-[#e7e9ea]">لا توجد منشورات في المنصة حتى الآن</p>
+          <p className="text-base font-semibold text-[#e7e9ea]">لا يوجد هري في المنصة حتى الآن</p>
           <p className="text-xs max-w-xs">
-            كن أول من يشارك فكرة، صورة، أو مستند في مجتمع GXE عبر صندوق النشر في الأعلى!
+            كن أول من يهري أو يشارك فكرة وصورة في مجتمع GXE عبر صندوق الهري في الأعلى!
           </p>
         </div>
       )}

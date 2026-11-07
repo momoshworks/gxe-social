@@ -36,7 +36,7 @@ export const TrendsSidebar: React.FC<TrendsSidebarProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث في منشورات GXE..."
+            placeholder="بحث في هري GXE..."
             className="w-full bg-[#202327] text-[#e7e9ea] placeholder-[#71767b] text-sm rounded-full py-2.5 pr-11 pl-4 outline-none border border-transparent focus:border-[#1d9bf0] focus:bg-[#000000] transition-colors"
           />
           {searchQuery && (
@@ -100,7 +100,7 @@ export const TrendsSidebar: React.FC<TrendsSidebarProps> = ({
           </div>
         ) : (
           <div className="p-4 text-center text-xs text-[#71767b]">
-            لا توجد هاشتاجات رائجة بعد. استخدم #الهاشتاج في منشورك ليظهر هنا!
+            لا توجد هاشتاجات رائجة بعد. استخدم #الهاشتاج في هاريتك ليظهر هنا!
           </div>
         )}
       </div>

@@ -62,7 +62,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="font-bold text-base text-[#e7e9ea]">الرد على التغريدة</h2>
+            <h2 className="font-bold text-base text-[#e7e9ea]">الرد على الهارية</h2>
           </div>
           <span className="text-xs text-[#71767b] flex items-center gap-1">
             <MessageCircle className="w-3.5 h-3.5" />

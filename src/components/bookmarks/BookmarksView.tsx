@@ -51,9 +51,9 @@ export const BookmarksView: React.FC<BookmarksViewProps> = ({
       ) : (
         <div className="p-16 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
           <BookmarkCheck className="w-14 h-14 text-[#2f3336]" />
-          <h3 className="font-bold text-base text-[#e7e9ea]">احفظ المنشورات لوقت لاحق</h3>
+          <h3 className="font-bold text-base text-[#e7e9ea]">احفظ الهري لوقت لاحق</h3>
           <p className="text-xs max-w-xs leading-relaxed">
-            لا تفوت المنشورات الرائعة! اضغط على أيقونة الإشارة المرجعية أسفل أي منشور لحفظه هنا والرجوع إليه في أي وقت.
+            لا تفوت الهري الجامد! اضغط على أيقونة الإشارة المرجعية أسفل أي هارية لحفظها هنا والرجوع إليها في أي وقت.
           </p>
         </div>
       )}

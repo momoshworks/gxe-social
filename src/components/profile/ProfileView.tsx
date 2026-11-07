@@ -61,7 +61,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <h1 className="font-bold text-lg text-[#e7e9ea]">{currentUser.name}</h1>
             {currentUser.verified && <span className="text-[#1d9bf0] text-xs font-bold">✓</span>}
           </div>
-          <span className="text-xs text-[#71767b]">{myPosts.length} منشورات</span>
+          <span className="text-xs text-[#71767b]">{myPosts.length} هارية</span>
         </div>
       </div>
 
@@ -155,7 +155,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="flex-1 py-3 text-center hover:bg-[#181818] transition-colors relative flex items-center justify-center gap-1.5"
         >
           <span className={activeTab === 'posts' ? 'text-[#e7e9ea] font-bold' : 'text-[#71767b]'}>
-            المنشورات ({myPosts.length})
+            الهري ({myPosts.length})
           </span>
           {activeTab === 'posts' && <span className="absolute bottom-0 h-1 w-16 bg-[#1d9bf0] rounded-full" />}
         </button>
@@ -200,20 +200,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {activeTab === 'posts' ? (
             <>
               <MessageSquare className="w-12 h-12 text-[#2f3336]" />
-              <p className="text-sm font-semibold text-[#e7e9ea]">لم تنشر أي شيء بعد</p>
-              <p className="text-xs">شارك أول منشور لك مع مجتمع GXE!</p>
+              <p className="text-sm font-semibold text-[#e7e9ea]">لم تهري أي شيء بعد</p>
+              <p className="text-xs">شارك أول هارية لك مع مجتمع GXE!</p>
             </>
           ) : activeTab === 'media' ? (
             <>
               <ImageIcon className="w-12 h-12 text-[#2f3336]" />
               <p className="text-sm font-semibold text-[#e7e9ea]">لا توجد صور أو وسائط</p>
-              <p className="text-xs">الصور التي ترفعها مع منشوراتك ستظهر هنا.</p>
+              <p className="text-xs">الصور التي ترفعها مع الهري ستظهر هنا.</p>
             </>
           ) : (
             <>
               <Heart className="w-12 h-12 text-[#2f3336]" />
               <p className="text-sm font-semibold text-[#e7e9ea]">لا توجد إعجابات بعد</p>
-              <p className="text-xs">المنشورات التي تعجبك ستظهر في هذا التبويب.</p>
+              <p className="text-xs">الهري الذي يعجبك سيظهر في هذا التبويب.</p>
             </>
           )}
         </div>

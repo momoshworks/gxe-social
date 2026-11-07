@@ -94,7 +94,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     e.stopPropagation();
     toggleBookmark(post.id, currentUser.id);
     if (onNotify) {
-      onNotify(isBookmarked ? 'تمت إزالة المنشور من المحفوظات' : 'تم حفظ المنشور في العلامات المرجعية 🔖', 'success');
+      onNotify(isBookmarked ? 'تمت إزالة الهارية من المحفوظات' : 'تم حفظ الهارية في العلامات المرجعية 🔖', 'success');
     }
   };
 
@@ -102,15 +102,15 @@ export const PostCard: React.FC<PostCardProps> = ({
     e.stopPropagation();
     const shareUrl = `${window.location.origin}/#post-${post.id}`;
     navigator.clipboard.writeText(shareUrl);
-    if (onNotify) onNotify('تم نسخ رابط المنشور إلى الحافظة! 🔗', 'success');
+    if (onNotify) onNotify('تم نسخ رابط الهارية إلى الحافظة! 🔗', 'success');
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowMenu(false);
-    if (window.confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
+    if (window.confirm('هل أنت متأكد من حذف هذه الهارية؟')) {
       await deletePost(post.id);
-      if (onNotify) onNotify('تم حذف المنشور بنجاح', 'info');
+      if (onNotify) onNotify('تم حذف الهارية بنجاح', 'info');
     }
   };
 
@@ -160,7 +160,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       {post.pinned && (
         <div className="flex items-center gap-2 text-xs text-[#71767b] font-bold mb-2 mr-6">
           <Pin className="w-3.5 h-3.5 text-[#1d9bf0]" />
-          <span>منشور مثبت</span>
+          <span>هارية مثبتة</span>
         </div>
       )}
 
@@ -214,7 +214,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                     className="flex items-center gap-2 px-3 py-2 text-xs text-[#e7e9ea] hover:bg-[#16181c] w-full text-right"
                   >
                     <Copy className="w-4 h-4 text-[#71767b]" />
-                    <span>نسخ رابط المنشور</span>
+                    <span>نسخ رابط الهارية</span>
                   </button>
 
                   {post.mediaUrl && (
@@ -233,7 +233,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                       className="flex items-center gap-2 px-3 py-2 text-xs text-[#f4212e] hover:bg-red-500/10 w-full text-right border-t border-[#2f3336]"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>حذف المنشور</span>
+                      <span>حذف الهارية</span>
                     </button>
                   )}
                 </div>

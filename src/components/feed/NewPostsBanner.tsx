@@ -18,10 +18,10 @@ export const NewPostsBanner: React.FC<NewPostsBannerProps> = ({ count, onClick }
         <ArrowUp className="w-3.5 h-3.5" />
         <span>
           {count === 1
-            ? 'منشور جديد واحد متوفر 🚀'
+            ? 'هارية جديدة واحدة متوفرة 🚀'
             : count === 2
-            ? 'منشوران جديدان متوفران 🚀'
-            : `إظهار ${count} منشورات جديدة 🚀`}
+            ? 'هاريتان جديدتان متوفرتان 🚀'
+            : `إظهار ${count} من الهري الجديد 🚀`}
         </span>
       </button>
     </div>
