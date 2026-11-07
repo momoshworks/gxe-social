@@ -246,9 +246,10 @@ export const PostComposer: React.FC<PostComposerProps> = ({
               </span>
             )}
             <button
+              type="button"
               onClick={handlePublish}
               disabled={(!content.trim() && !selectedFile) || isSubmitting}
-              className="flex items-center gap-1.5 px-5 py-2 bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] hover:opacity-95 active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-black font-extrabold text-sm rounded-full transition-all shadow-md shadow-[#00f0ff]/20"
+              className="flex items-center gap-1.5 px-5 py-2 bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] hover:opacity-95 active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-black font-extrabold text-sm rounded-full transition-all shadow-md shadow-[#00f0ff]/20 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

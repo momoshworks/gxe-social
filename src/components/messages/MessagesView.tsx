@@ -112,10 +112,15 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
         mediaUrl = uploadRes.url;
       }
 
-      await sendDirectMessage(currentUser, selectedUser.id, inputText.trim(), mediaUrl);
+      const sentMsg = await sendDirectMessage(currentUser, selectedUser.id, inputText.trim(), mediaUrl);
+      // Instant optimistic UI reflection
+      setMessages((prev) => [...prev.filter((m) => m.id !== sentMsg.id), sentMsg]);
       playNotificationSound();
       setInputText('');
       removeFile();
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     } catch (err: any) {
       console.error('Failed to send direct message:', err);
       if (onNotify) onNotify(err?.message || 'تعذر إرسال الرسالة، تحقق من الاتصال', 'error');
@@ -217,7 +222,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
 
       {/* Active Conversation Chat Window */}
       <div
-        className={`flex-1 flex flex-col h-screen sticky top-0 ${
+        className={`flex-1 flex flex-col h-[calc(100dvh-60px)] md:h-screen sticky top-0 ${
           !selectedUser ? 'hidden md:flex' : 'flex'
         }`}
       >
@@ -358,7 +363,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
             {/* Message Input Box */}
             <form
               onSubmit={handleSendMessage}
-              className="p-3 border-t border-[#2f3336] bg-[#000000] flex items-center gap-2"
+              className="p-3 border-t border-[#2f3336] bg-[#000000] flex items-center gap-2 shrink-0"
             >
               <input
                 ref={fileInputRef}

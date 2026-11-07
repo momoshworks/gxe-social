@@ -42,8 +42,28 @@ function getLocalPosts(): Post[] {
   return INITIAL_POSTS;
 }
 
+// Local in-memory listeners for the current tab / mobile screen
+const localPostListeners: Set<(posts: Post[]) => void> = new Set();
+
+function notifyLocalPostListeners(posts: Post[]) {
+  localPostListeners.forEach((listener) => {
+    try {
+      listener(posts);
+    } catch (e) {
+      console.warn('Local post listener error:', e);
+    }
+  });
+}
+
 function setLocalPosts(posts: Post[]) {
-  localStorage.setItem(LOCAL_POSTS_KEY, JSON.stringify(posts));
+  try {
+    localStorage.setItem(LOCAL_POSTS_KEY, JSON.stringify(posts));
+  } catch (e) {
+    console.warn('Storage quota exceeded:', e);
+  }
+  // 1. Notify current window listeners immediately!
+  notifyLocalPostListeners(posts);
+  // 2. Notify other open windows/tabs via broadcast
   if (channel) {
     channel.postMessage({ type: 'POSTS_UPDATED', posts });
   }
@@ -83,19 +103,43 @@ function setLocalNotifications(notifs: AppNotification[]) {
   }
 }
 
+function mergePosts(cloud: Post[], local: Post[]): Post[] {
+  const map = new Map<string, Post>();
+  local.forEach((p) => map.set(p.id, p));
+  cloud.forEach((p) => map.set(p.id, p));
+  return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+}
+
 /**
- * Real-time subscription to Posts Feed (from Cloud Firestore)
+ * Real-time subscription to Posts Feed (Dual-Layer: Instant Local + Cloud Firestore)
  */
 export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe {
-  // 1. Instant local render (0ms) so feed never shows blank loading
-  onUpdate(getLocalPosts());
+  // 1. Instant local render (0ms) so feed is never empty or lagging
+  const initial = getLocalPosts();
+  onUpdate(initial);
 
+  // 2. Register local in-memory listener for instant updates on current window
+  localPostListeners.add(onUpdate);
+
+  // 3. Listen to other tabs/windows
+  const handleMessage = (event: MessageEvent) => {
+    if (event.data?.type === 'POSTS_UPDATED') {
+      onUpdate(event.data.posts);
+    }
+  };
+  if (channel) {
+    channel.addEventListener('message', handleMessage);
+  }
+
+  let unsubFirestore: Unsubscribe = () => {};
+
+  // 4. Listen to Cloud Firestore
   if (db) {
     try {
       const postsRef = collection(db, 'posts');
       const q = query(postsRef, orderBy('createdAt', 'desc'));
 
-      return onSnapshot(
+      unsubFirestore = onSnapshot(
         q,
         (snapshot) => {
           const cloudPosts: Post[] = [];
@@ -119,11 +163,18 @@ export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe
               pinned: data.pinned || false,
             });
           });
-          onUpdate(cloudPosts);
-          setLocalPosts(cloudPosts);
+
+          // Merge cloud posts with local posts so freshly created local posts are never wiped
+          const merged = mergePosts(cloudPosts, getLocalPosts());
+          try {
+            localStorage.setItem(LOCAL_POSTS_KEY, JSON.stringify(merged));
+          } catch {
+            // ignore
+          }
+          onUpdate(merged);
         },
         (error) => {
-          console.warn('Firestore Posts subscribe error, using local storage cache:', error);
+          console.warn('Firestore Posts subscribe notice (using local storage cache):', error);
           onUpdate(getLocalPosts());
         }
       );
@@ -132,23 +183,12 @@ export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe
     }
   }
 
-  // Local fallback
-  onUpdate(getLocalPosts());
-
-  const handleMessage = (event: MessageEvent) => {
-    if (event.data?.type === 'POSTS_UPDATED') {
-      onUpdate(event.data.posts);
-    }
-  };
-
-  if (channel) {
-    channel.addEventListener('message', handleMessage);
-  }
-
   return () => {
+    localPostListeners.delete(onUpdate);
     if (channel) {
       channel.removeEventListener('message', handleMessage);
     }
+    unsubFirestore();
   };
 }
 
@@ -175,7 +215,7 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
   if (db) {
     try {
       const postsRef = collection(db, 'posts');
-      const docRef = await addDoc(postsRef, {
+      const addDocPromise = addDoc(postsRef, {
         author: fullPost.author,
         content: fullPost.content,
         mediaUrl: fullPost.mediaUrl || null,
@@ -190,7 +230,16 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
         repostedBy: [],
         bookmarkedBy: [],
       });
-      return docRef.id;
+
+      // 3.5s timeout race: ensures mobile UI never hangs if network is slow or offline
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 3500)
+      );
+
+      const docRef = await Promise.race([addDocPromise, timeoutPromise]);
+      if (docRef && (docRef as any).id) {
+        return (docRef as any).id;
+      }
     } catch (err) {
       console.warn('Failed to add post to Firestore, kept in local cache:', err);
     }

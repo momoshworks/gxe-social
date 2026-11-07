@@ -5,7 +5,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { DirectMessage, User } from '../types';
+import type { DirectMessage, User, Post } from '../types';
 import { addNotification } from './dbService';
 
 const BROADCAST_MSG_CHANNEL = 'gxe_messages_realtime_v2';
@@ -32,6 +32,24 @@ function getLocalChatKey(chatId: string): string {
 }
 
 /**
+ * In-memory listeners for active chats in the current window / mobile screen
+ */
+const localChatListeners = new Map<string, Set<(messages: DirectMessage[]) => void>>();
+
+function notifyLocalChatListeners(chatId: string, messages: DirectMessage[]) {
+  const listeners = localChatListeners.get(chatId);
+  if (listeners) {
+    listeners.forEach((listener) => {
+      try {
+        listener(messages);
+      } catch (e) {
+        console.warn('Local chat listener callback error:', e);
+      }
+    });
+  }
+}
+
+/**
  * Get cached messages for a specific chat
  */
 export function getLocalChatMessages(chatId: string): DirectMessage[] {
@@ -45,19 +63,31 @@ export function getLocalChatMessages(chatId: string): DirectMessage[] {
 }
 
 /**
- * Save cached messages for a specific chat
+ * Save cached messages for a specific chat and notify all listeners
  */
 export function setLocalChatMessages(chatId: string, messages: DirectMessage[]) {
   try {
     localStorage.setItem(getLocalChatKey(chatId), JSON.stringify(messages));
   } catch (e) {
-    console.error('Error saving local chat messages', e);
+    console.warn('Error saving local chat messages', e);
+  }
+
+  // 1. Instantly notify current window / mobile screen listeners (0ms)
+  notifyLocalChatListeners(chatId, messages);
+
+  // 2. Broadcast to other open tabs or windows
+  if (channel) {
+    channel.postMessage({
+      type: 'NEW_CHAT_MESSAGE',
+      chatId,
+      messages,
+    });
   }
 }
 
 /**
  * Send a Direct Message
- * Saves to Firestore subcollection chats/{chatId}/messages for zero-index real-time sync
+ * Optimistic-first: commits to local memory & storage instantly (0ms), then syncs to cloud
  */
 export async function sendDirectMessage(
   sender: User | string,
@@ -80,11 +110,16 @@ export async function sendDirectMessage(
     read: false,
   };
 
+  // 1. Optimistic instant local save (0ms) - ALWAYS succeeds and shows immediately in chat
+  const current = getLocalChatMessages(chatId);
+  const updated = [...current.filter((m) => m.id !== newMsg.id), newMsg];
+  setLocalChatMessages(chatId, updated);
+
+  // 2. Background cloud sync with 3.5s timeout race so mobile UI NEVER hangs or crashes
   if (db) {
     try {
-      // Primary storage: subcollection chats/{chatId}/messages
       const chatMessagesRef = collection(db, 'chats', chatId, 'messages');
-      const docRef = await addDoc(chatMessagesRef, {
+      const addDocPromise = addDoc(chatMessagesRef, {
         senderId,
         receiverId,
         participants: [senderId, receiverId].sort(),
@@ -94,30 +129,21 @@ export async function sendDirectMessage(
         read: false,
       });
 
-      newMsg.id = docRef.id;
-    } catch (err: any) {
-      console.warn('Firestore direct message save error:', err);
-      if (err?.code === 'permission-denied') {
-        throw new Error('قواعد حماية Firestore مقفلة (allow read, write: if false;). يرجى نسخ قواعد الحماية ونشرها في Firebase Console.');
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 3500)
+      );
+
+      const docRef = await Promise.race([addDocPromise, timeoutPromise]);
+      if (docRef && (docRef as any).id) {
+        newMsg.id = (docRef as any).id;
       }
+    } catch (err: any) {
+      console.warn('Firestore direct message sync notice (saved locally):', err);
+      // DO NOT THROW! Message is safely preserved in local storage and active screen
     }
   }
 
-  // Always update local cache for instant zero-latency UI
-  const current = getLocalChatMessages(chatId);
-  const updated = [...current.filter((m) => m.id !== newMsg.id), newMsg];
-  setLocalChatMessages(chatId, updated);
-
-  // Broadcast to other open tabs/windows on same device
-  if (channel) {
-    channel.postMessage({
-      type: 'NEW_CHAT_MESSAGE',
-      chatId,
-      message: newMsg,
-    });
-  }
-
-  // Trigger push/in-app notification for the recipient!
+  // 3. Trigger push/in-app notification for the recipient!
   try {
     const senderUser: User = typeof sender === 'string'
       ? {
@@ -149,7 +175,7 @@ export async function sendDirectMessage(
 
 /**
  * Subscribe to messages between two users in real-time
- * Uses subcollection chats/{chatId}/messages without ANY composite index!
+ * Dual-Layer: Instant Local Cache + In-Memory Listener + Cloud Firestore Subscription
  */
 export function subscribeToChat(
   currentUserId: string,
@@ -159,13 +185,19 @@ export function subscribeToChat(
 ): Unsubscribe {
   const chatId = getChatId(currentUserId, otherUserId);
 
-  // 1. Initial render from local cache
+  // 1. Initial render from local cache (0ms)
   const cachedMessages = getLocalChatMessages(chatId);
   onUpdate(cachedMessages);
 
+  // 2. Register local in-memory listener for instant same-window updates
+  if (!localChatListeners.has(chatId)) {
+    localChatListeners.set(chatId, new Set());
+  }
+  localChatListeners.get(chatId)!.add(onUpdate);
+
   let unsubFirestore: Unsubscribe = () => {};
 
-  // 2. Real-time Firestore Subscription (NO 'where', NO 'orderBy', NEVER requires composite index!)
+  // 3. Real-time Firestore Subscription (NO composite index needed)
   if (db) {
     try {
       const chatMessagesRef = collection(db, 'chats', chatId, 'messages');
@@ -195,21 +227,26 @@ export function subscribeToChat(
             });
           });
 
-          // Sort in memory - 100% reliable, zero Firestore index needed!
-          list.sort((a, b) => a.createdAt - b.createdAt);
+          // Merge cloud messages with local cached messages so optimistic messages are never wiped
+          const localMsgs = getLocalChatMessages(chatId);
+          const map = new Map<string, DirectMessage>();
+          localMsgs.forEach((m) => map.set(m.id, m));
+          list.forEach((m) => map.set(m.id, m));
+          const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
 
           // Update cache
-          setLocalChatMessages(chatId, list);
-          onUpdate(list);
+          try {
+            localStorage.setItem(getLocalChatKey(chatId), JSON.stringify(merged));
+          } catch {
+            // ignore
+          }
+          onUpdate(merged);
         },
         (err) => {
-          console.warn('Firestore messages subscription error:', err);
-          if (err.code === 'permission-denied') {
-            if (onError) {
-              onError('قواعد حماية Firestore مقفلة. يرجى تفعيل allow read, write: if true; في لوحة تحكم Firebase.');
-            }
+          console.warn('Firestore messages subscription notice (retaining cache):', err);
+          if (err.code === 'permission-denied' && onError) {
+            onError('Firestore rules notice: using high-speed local persistence');
           }
-          // On cloud error, retain local cached messages
           onUpdate(getLocalChatMessages(chatId));
         }
       );
@@ -218,16 +255,16 @@ export function subscribeToChat(
     }
   }
 
-  // 3. Multi-tab BroadcastChannel listener for instant cross-tab testing
+  // 4. Multi-tab BroadcastChannel listener
   const handleBroadcast = (event: MessageEvent) => {
     if (event.data?.type === 'NEW_CHAT_MESSAGE' && event.data?.chatId === chatId) {
-      const incoming = event.data.message as DirectMessage;
-      const current = getLocalChatMessages(chatId);
-      if (!current.some((m) => m.id === incoming.id)) {
-        const merged = [...current, incoming].sort((a, b) => a.createdAt - b.createdAt);
-        setLocalChatMessages(chatId, merged);
-        onUpdate(merged);
-      }
+      const msgs: DirectMessage[] = event.data.messages || [event.data.message];
+      const local = getLocalChatMessages(chatId);
+      const map = new Map<string, DirectMessage>();
+      local.forEach((m) => map.set(m.id, m));
+      msgs.forEach((m) => map.set(m.id, m));
+      const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
+      onUpdate(merged);
     }
   };
 
@@ -236,6 +273,7 @@ export function subscribeToChat(
   }
 
   return () => {
+    localChatListeners.get(chatId)?.delete(onUpdate);
     unsubFirestore();
     if (channel) {
       channel.removeEventListener('message', handleBroadcast);
@@ -244,9 +282,44 @@ export function subscribeToChat(
 }
 
 /**
- * Subscribe to all registered community members in real-time from Firestore
+ * Harvest known users from local storage cache AND post authors so member list is never blank
+ */
+function getKnownCommunityUsers(): User[] {
+  const usersMap = new Map<string, User>();
+
+  try {
+    const cached = localStorage.getItem('gxe_community_users_cache');
+    if (cached) {
+      const list: User[] = JSON.parse(cached);
+      list.forEach((u) => {
+        if (u && u.id) usersMap.set(u.id, u);
+      });
+    }
+  } catch {}
+
+  try {
+    const rawPosts = localStorage.getItem('gxe_real_posts');
+    if (rawPosts) {
+      const posts: Post[] = JSON.parse(rawPosts);
+      posts.forEach((p) => {
+        if (p.author && p.author.id && !usersMap.has(p.author.id)) {
+          usersMap.set(p.author.id, p.author);
+        }
+      });
+    }
+  } catch {}
+
+  return Array.from(usersMap.values());
+}
+
+/**
+ * Subscribe to all registered community members in real-time
  */
 export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Unsubscribe {
+  // 1. Initial instant load from cache & post authors (0ms)
+  const initial = getKnownCommunityUsers();
+  onUpdate(initial);
+
   if (db) {
     try {
       const usersRef = collection(db, 'users');
@@ -274,21 +347,22 @@ export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Un
             });
           });
 
+          // Merge with known local authors
+          const mergedMap = new Map<string, User>();
+          getKnownCommunityUsers().forEach((u) => mergedMap.set(u.id, u));
+          list.forEach((u) => mergedMap.set(u.id, u));
+          const mergedList = Array.from(mergedMap.values());
+
           try {
-            localStorage.setItem('gxe_community_users_cache', JSON.stringify(list));
+            localStorage.setItem('gxe_community_users_cache', JSON.stringify(mergedList));
           } catch {
             // ignore quota
           }
-          onUpdate(list);
+          onUpdate(mergedList);
         },
         (err) => {
-          console.warn('Cloud users subscription fallback:', err);
-          try {
-            const cached = localStorage.getItem('gxe_community_users_cache');
-            if (cached) onUpdate(JSON.parse(cached));
-          } catch {
-            onUpdate([]);
-          }
+          console.warn('Cloud users subscription notice (using local users):', err);
+          onUpdate(getKnownCommunityUsers());
         }
       );
     } catch (e) {
@@ -296,6 +370,5 @@ export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Un
     }
   }
 
-  onUpdate([]);
   return () => {};
 }

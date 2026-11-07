@@ -39,17 +39,19 @@ export const MainFeed: React.FC<MainFeedProps> = ({
 
     // Check if new posts arrived
     const isScrolledDown = window.scrollY > 200;
-    if (posts.length > prevPostsCountRef.current && isScrolledDown) {
+    const isMyPost = posts[0] && posts[0].author.id === currentUser.id;
+
+    if (posts.length > prevPostsCountRef.current && isScrolledDown && !isMyPost) {
       const diff = posts.length - prevPostsCountRef.current;
       setNewPostsCount((prev) => prev + diff);
     } else {
-      // Auto update if user is near top
+      // Auto update if user is near top OR if the user is the author of the new post
       setDisplayedPosts(posts);
       setNewPostsCount(0);
     }
 
     prevPostsCountRef.current = posts.length;
-  }, [posts]);
+  }, [posts, currentUser.id]);
 
   const handleShowNewPosts = () => {
     setDisplayedPosts(posts);
@@ -134,7 +136,15 @@ export const MainFeed: React.FC<MainFeedProps> = ({
       <NewPostsBanner count={newPostsCount} onClick={handleShowNewPosts} />
 
       {/* Post Creator Composer */}
-      <PostComposer currentUser={currentUser} onNotify={onNotify} />
+      <PostComposer
+        currentUser={currentUser}
+        onPostCreated={() => {
+          setDisplayedPosts(posts);
+          setNewPostsCount(0);
+          topAnchorRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }}
+        onNotify={onNotify}
+      />
 
       {/* Posts Stream */}
       {filteredPosts.length > 0 ? (
