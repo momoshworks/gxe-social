@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Mail, Lock, User as UserIcon, LogIn, Cloud, UserCheck } from 'lucide-react';
 import { loginWithGoogle, loginWithEmail, registerWithEmail, saveLocalUser } from '../../services/authService';
-import { isCloudConnected } from '../../services/firebase';
+import { isCloudConnected } from '../../services/cloudflare';
 import type { User } from '../../types';
 import logoImg from '../../assets/logo.png';
 
@@ -33,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleGoogleLogin = async () => {
     if (!isConnected) {
-      setErrorMsg('قاعدة بيانات Firebase السحابية لم يتم ربطها بعد. اضغط على الزر بالأسفل لربط مفاتيح مشروعك gxe-app أو تابع كضيف.');
+      setErrorMsg('قاعدة بيانات Cloudflare السحابية قيد المزامنة. يمكنك المتابعة فورا كضيف أو إنشاء حساب.');
       return;
     }
 
@@ -48,10 +48,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.error('Google login error:', err);
       if (err.code === 'auth/popup-closed-by-user') {
         setErrorMsg('تم إغلاق نافذة Google المنبثقة قبل اختيار الحساب. اضغط على الزر مجدداً واختر إيميلك دون إغلاق النافذة للمتابعة.');
-      } else if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
-        setErrorMsg('النطاق غير مضاف في قائمة النطاقات المعتمدة (Authorized Domains) في Firebase.');
       } else {
-        setErrorMsg(err.message || 'حدث خطأ أثناء الاتصال بحساب Google');
+        setErrorMsg(err.message || 'حدث خطأ أثناء الاتصال السحابي');
       }
     } finally {
       setLoading(false);
@@ -159,7 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="mt-1 px-3 py-1.5 rounded-full bg-[#ff9900] text-black font-bold text-xs hover:bg-[#ff9900]/90 transition-colors self-center"
               >
-                ⚙️ إدخال كود ربط Firebase السحابي
+                ⚙️ إعدادات سحابة Cloudflare D1
               </button>
             )}
           </div>

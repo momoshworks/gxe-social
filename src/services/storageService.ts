@@ -1,5 +1,4 @@
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from './firebase';
+import { apiFetch } from './cloudflare';
 
 export interface UploadProgressCallback {
   (progress: number): void;
@@ -32,7 +31,6 @@ export async function compressImage(
   quality: number = 0.82
 ): Promise<{ dataUrl: string; blob: Blob }> {
   return new Promise((resolve, reject) => {
-    // If not an image, resolve with original
     if (!file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = () => resolve({ dataUrl: reader.result as string, blob: file });
@@ -50,7 +48,6 @@ export async function compressImage(
       let width = img.width;
       let height = img.height;
 
-      // Maintain aspect ratio
       if (width > height) {
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width);
@@ -69,7 +66,6 @@ export async function compressImage(
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        // Fallback to reader
         const reader = new FileReader();
         reader.onload = () => resolve({ dataUrl: reader.result as string, blob: file });
         reader.onerror = reject;
@@ -81,7 +77,6 @@ export async function compressImage(
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Try webp first, fallback to jpeg
       let mimeType = 'image/webp';
       let dataUrl = canvas.toDataURL(mimeType, quality);
 
@@ -116,11 +111,7 @@ export async function compressImage(
 }
 
 /**
- * Universal media file uploader:
- * 1. Fast compression for images
- * 2. Attempts Firebase Storage upload with timeout
- * 3. Gracefully falls back to compressed Base64 dataUrl if Storage is unprovisioned
- * 4. Never fails or blocks user actions!
+ * Universal media file uploader with Cloudflare integration
  */
 export async function uploadMediaFile(
   file: File,
@@ -135,12 +126,12 @@ export async function uploadMediaFile(
 
   const sizeFormatted = formatFileSize(file.size);
 
-  // If it's an image, compress it first
   let compressedBlob: Blob = file;
   let compressedDataUrl = '';
 
   if (mediaType === 'image') {
     try {
+      if (onProgress) onProgress(30);
       const comp = await compressImage(
         file,
         options?.maxWidth || 1200,
@@ -149,58 +140,37 @@ export async function uploadMediaFile(
       );
       compressedBlob = comp.blob;
       compressedDataUrl = comp.dataUrl;
+      if (onProgress) onProgress(70);
     } catch {
-      // ignore, use original file
+      // ignore
     }
   }
 
-  // Attempt Firebase Storage upload if available
-  if (storage) {
-    try {
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const storageRef = ref(storage, `uploads/${Date.now()}_${sanitizedName}`);
-      const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
+  // Attempt upload to Cloudflare Worker
+  try {
+    const payload = {
+      dataUrl: compressedDataUrl,
+      name: file.name,
+      size: formatFileSize(compressedBlob.size || file.size),
+      type: mediaType,
+    };
 
-      const storagePromise = new Promise<UploadedMedia>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            if (onProgress) onProgress(progress);
-          },
-          (error) => {
-            reject(error);
-          },
-          async () => {
-            try {
-              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              if (onProgress) onProgress(100);
-              resolve({
-                url: downloadUrl,
-                name: file.name,
-                size: formatFileSize(compressedBlob.size || file.size),
-                type: mediaType,
-              });
-            } catch (err) {
-              reject(err);
-            }
-          }
-        );
-      });
+    const res = await apiFetch<UploadedMedia>('/api/upload', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
 
-      // 5-second timeout race: if Firebase Storage hangs or CORS fails, fall back to dataUrl
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Firebase Storage timeout')), 5000)
-      );
-
-      const uploaded = await Promise.race([storagePromise, timeoutPromise]);
-      return uploaded;
-    } catch (e) {
-      console.warn('Firebase Storage unavailable, falling back to instant data reader:', e);
-    }
+    if (onProgress) onProgress(100);
+    return {
+      url: res.url || compressedDataUrl,
+      name: file.name,
+      size: formatFileSize(compressedBlob.size || file.size),
+      type: mediaType,
+    };
+  } catch (e) {
+    console.warn('Cloudflare upload notice, using optimized client media:', e);
   }
 
-  // Fallback: If we already compressed the image, return its lightweight dataUrl directly
   if (compressedDataUrl) {
     if (onProgress) onProgress(100);
     return {
@@ -211,7 +181,6 @@ export async function uploadMediaFile(
     };
   }
 
-  // Fallback for non-image files (documents, audio, etc.)
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {

@@ -1,12 +1,6 @@
-import {
-  collection,
-  onSnapshot,
-  addDoc,
-  type Unsubscribe,
-} from 'firebase/firestore';
-import { db } from './firebase';
-import type { DirectMessage, User, Post } from '../types';
+import type { DirectMessage, User, Post, Unsubscribe } from '../types';
 import { addNotification } from './dbService';
+import { apiFetch } from './cloudflare';
 
 const BROADCAST_MSG_CHANNEL = 'gxe_messages_realtime_v2';
 
@@ -24,16 +18,10 @@ export function getChatId(uid1: string, uid2: string): string {
   return [uid1, uid2].sort().join('___');
 }
 
-/**
- * Helper to get local storage key for a specific chat
- */
 function getLocalChatKey(chatId: string): string {
   return `gxe_chat_${chatId}`;
 }
 
-/**
- * In-memory listeners for active chats in the current window / mobile screen
- */
 const localChatListeners = new Map<string, Set<(messages: DirectMessage[]) => void>>();
 
 function notifyLocalChatListeners(chatId: string, messages: DirectMessage[]) {
@@ -49,9 +37,6 @@ function notifyLocalChatListeners(chatId: string, messages: DirectMessage[]) {
   }
 }
 
-/**
- * Get cached messages for a specific chat
- */
 export function getLocalChatMessages(chatId: string): DirectMessage[] {
   try {
     const raw = localStorage.getItem(getLocalChatKey(chatId));
@@ -62,9 +47,6 @@ export function getLocalChatMessages(chatId: string): DirectMessage[] {
   return [];
 }
 
-/**
- * Save cached messages for a specific chat and notify all listeners
- */
 export function setLocalChatMessages(chatId: string, messages: DirectMessage[]) {
   try {
     localStorage.setItem(getLocalChatKey(chatId), JSON.stringify(messages));
@@ -72,10 +54,8 @@ export function setLocalChatMessages(chatId: string, messages: DirectMessage[]) 
     console.warn('Error saving local chat messages', e);
   }
 
-  // 1. Instantly notify current window / mobile screen listeners (0ms)
   notifyLocalChatListeners(chatId, messages);
 
-  // 2. Broadcast to other open tabs or windows
   if (channel) {
     channel.postMessage({
       type: 'NEW_CHAT_MESSAGE',
@@ -85,9 +65,16 @@ export function setLocalChatMessages(chatId: string, messages: DirectMessage[]) 
   }
 }
 
+if (channel) {
+  channel.onmessage = (event) => {
+    if (event.data?.type === 'NEW_CHAT_MESSAGE' && event.data.chatId) {
+      notifyLocalChatListeners(event.data.chatId, event.data.messages);
+    }
+  };
+}
+
 /**
- * Send a Direct Message
- * Optimistic-first: commits to local memory & storage instantly (0ms), then syncs to cloud
+ * Send a Direct Message (0ms Instant Local + Cloudflare D1 Background Sync)
  */
 export async function sendDirectMessage(
   sender: User | string,
@@ -98,6 +85,22 @@ export async function sendDirectMessage(
   const senderId = typeof sender === 'string' ? sender : sender.id;
   const chatId = getChatId(senderId, receiverId);
   const now = Date.now();
+
+  const senderUser: User =
+    typeof sender === 'string'
+      ? {
+          id: sender,
+          name: 'مستخدم GXE',
+          username: 'user',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + sender,
+          bio: '',
+          createdAt: Date.now(),
+          following: [],
+          followers: [],
+          followingCount: 0,
+          followersCount: 0,
+        }
+      : sender;
 
   const newMsg: DirectMessage = {
     id: 'msg_' + now + '_' + Math.random().toString(36).substring(2, 7),
@@ -110,44 +113,33 @@ export async function sendDirectMessage(
     read: false,
   };
 
-  // 1. Optimistic instant local save (0ms) - ALWAYS succeeds and shows immediately in chat
+  // 1. Optimistic instant local save (0ms)
   const current = getLocalChatMessages(chatId);
   const updated = [...current.filter((m) => m.id !== newMsg.id), newMsg];
   setLocalChatMessages(chatId, updated);
 
-  // 2. Background cloud sync (0ms non-blocking!)
-  if (db) {
-    const chatMessagesRef = collection(db, 'chats', chatId, 'messages');
-    addDoc(chatMessagesRef, {
-      senderId,
-      receiverId,
-      participants: [senderId, receiverId].sort(),
-      text: text.trim(),
-      mediaUrl: mediaUrl || null,
-      createdAt: now,
-      read: false,
-    }).catch((err: any) => {
-      console.warn('Firestore direct message sync notice (saved locally):', err);
+  // 2. Cloudflare D1 background sync
+  try {
+    await apiFetch('/api/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        id: newMsg.id,
+        chatId,
+        senderId,
+        receiverId,
+        senderName: senderUser.name,
+        senderAvatar: senderUser.avatar,
+        text: text.trim(),
+        mediaUrl: mediaUrl || null,
+        createdAt: now,
+      }),
     });
+  } catch (err) {
+    console.warn('Cloudflare direct message sync notice:', err);
   }
 
-  // 3. Trigger push/in-app notification for the recipient!
+  // 3. Dispatch notification
   try {
-    const senderUser: User = typeof sender === 'string'
-      ? {
-          id: sender,
-          name: 'عضو في GXE',
-          username: 'user',
-          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + sender,
-          bio: '',
-          createdAt: Date.now(),
-          following: [],
-          followers: [],
-          followingCount: 0,
-          followersCount: 0,
-        }
-      : sender;
-
     await addNotification({
       recipientId: receiverId,
       sender: senderUser,
@@ -163,13 +155,12 @@ export async function sendDirectMessage(
 
 /**
  * Subscribe to messages between two users in real-time
- * Dual-Layer: Instant Local Cache + In-Memory Listener + Cloud Firestore Subscription
  */
 export function subscribeToChat(
   currentUserId: string,
   otherUserId: string,
   onUpdate: (messages: DirectMessage[]) => void,
-  onError?: (errMessage: string) => void
+  _onError?: (errMessage: string) => void
 ): Unsubscribe {
   const chatId = getChatId(currentUserId, otherUserId);
 
@@ -177,94 +168,52 @@ export function subscribeToChat(
   const cachedMessages = getLocalChatMessages(chatId);
   onUpdate(cachedMessages);
 
-  // 2. Register local in-memory listener for instant same-window updates
+  // 2. Register local listener
   if (!localChatListeners.has(chatId)) {
     localChatListeners.set(chatId, new Set());
   }
   localChatListeners.get(chatId)!.add(onUpdate);
 
-  let unsubFirestore: Unsubscribe = () => {};
+  let isSubscribed = true;
 
-  // 3. Real-time Firestore Subscription (NO composite index needed)
-  if (db) {
+  // 3. Fetch from Cloudflare D1
+  const fetchCloudMessages = async () => {
+    if (!isSubscribed) return;
     try {
-      const chatMessagesRef = collection(db, 'chats', chatId, 'messages');
-
-      unsubFirestore = onSnapshot(
-        chatMessagesRef,
-        (snapshot) => {
-          const list: DirectMessage[] = [];
-          snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const createdAt =
-              typeof data.createdAt === 'number'
-                ? data.createdAt
-                : data.createdAt?.seconds
-                ? data.createdAt.seconds * 1000
-                : Date.now();
-
-            list.push({
-              id: docSnap.id,
-              senderId: data.senderId,
-              receiverId: data.receiverId,
-              participants: data.participants || [currentUserId, otherUserId],
-              text: data.text || '',
-              mediaUrl: data.mediaUrl || undefined,
-              createdAt,
-              read: !!data.read,
-            });
-          });
-
-          // Merge cloud messages with local cached messages so optimistic messages are never wiped
-          const localMsgs = getLocalChatMessages(chatId);
-          const map = new Map<string, DirectMessage>();
-          localMsgs.forEach((m) => map.set(m.id, m));
-          list.forEach((m) => map.set(m.id, m));
-          const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
-
-          // Update cache
-          try {
-            localStorage.setItem(getLocalChatKey(chatId), JSON.stringify(merged));
-          } catch {
-            // ignore
-          }
-          onUpdate(merged);
-        },
-        (err) => {
-          console.warn('Firestore messages subscription notice (retaining cache):', err);
-          if (err.code === 'permission-denied' && onError) {
-            onError('Firestore rules notice: using high-speed local persistence');
-          }
-          onUpdate(getLocalChatMessages(chatId));
-        }
-      );
-    } catch (err: any) {
-      console.warn('Error setting up Firestore messages listener:', err);
-    }
-  }
-
-  // 4. Multi-tab BroadcastChannel listener
-  const handleBroadcast = (event: MessageEvent) => {
-    if (event.data?.type === 'NEW_CHAT_MESSAGE' && event.data?.chatId === chatId) {
-      const msgs: DirectMessage[] = event.data.messages || [event.data.message];
-      const local = getLocalChatMessages(chatId);
-      const map = new Map<string, DirectMessage>();
-      local.forEach((m) => map.set(m.id, m));
-      msgs.forEach((m) => map.set(m.id, m));
-      const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
-      onUpdate(merged);
+      const cloudMsgs = await apiFetch<DirectMessage[]>(`/api/messages/${chatId}`);
+      if (Array.isArray(cloudMsgs) && isSubscribed) {
+        // Merge with local messages
+        const local = getLocalChatMessages(chatId);
+        const map = new Map<string, DirectMessage>();
+        cloudMsgs.forEach((m) => map.set(m.id, m));
+        local.forEach((m) => {
+          if (!map.has(m.id)) map.set(m.id, m);
+        });
+        const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
+        setLocalChatMessages(chatId, merged);
+        onUpdate(merged);
+      }
+    } catch (err) {
+      console.warn('Cloudflare chat sync notice:', err);
     }
   };
 
-  if (channel) {
-    channel.addEventListener('message', handleBroadcast);
-  }
+  fetchCloudMessages();
+
+  // Poll chat messages every 2.5 seconds
+  const intervalId = setInterval(() => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      fetchCloudMessages();
+    }
+  }, 2500);
 
   return () => {
-    localChatListeners.get(chatId)?.delete(onUpdate);
-    unsubFirestore();
-    if (channel) {
-      channel.removeEventListener('message', handleBroadcast);
+    isSubscribed = false;
+    clearInterval(intervalId);
+    const listeners = localChatListeners.get(chatId);
+    if (listeners) {
+      listeners.delete(onUpdate);
+      if (listeners.size === 0) localChatListeners.delete(chatId);
     }
   };
 }
@@ -304,59 +253,40 @@ export function getKnownCommunityUsers(): User[] {
  * Subscribe to all registered community members in real-time
  */
 export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Unsubscribe {
-  // 1. Initial instant load from cache & post authors (0ms)
   const initial = getKnownCommunityUsers();
   onUpdate(initial);
 
-  if (db) {
+  let isSubscribed = true;
+
+  const fetchUsers = async () => {
+    if (!isSubscribed) return;
     try {
-      const usersRef = collection(db, 'users');
-      return onSnapshot(
-        usersRef,
-        (snapshot) => {
-          const list: User[] = [];
-          snapshot.forEach((d) => {
-            const data = d.data();
-            list.push({
-              id: d.id,
-              name: data.name || 'مستخدم GXE',
-              username: data.username || `user_${d.id.substring(0, 5)}`,
-              avatar: data.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${d.id}`,
-              bio: data.bio || '',
-              coverUrl: data.coverUrl || undefined,
-              email: data.email || undefined,
-              verified: !!data.verified,
-              isOnline: !!data.isOnline,
-              createdAt: typeof data.createdAt === 'number' ? data.createdAt : undefined,
-              following: data.following || [],
-              followers: data.followers || [],
-              followingCount: data.followingCount || (data.following?.length || 0),
-              followersCount: data.followersCount || (data.followers?.length || 0),
-            });
-          });
-
-          // Merge with known local authors
-          const mergedMap = new Map<string, User>();
-          getKnownCommunityUsers().forEach((u) => mergedMap.set(u.id, u));
-          list.forEach((u) => mergedMap.set(u.id, u));
-          const mergedList = Array.from(mergedMap.values());
-
-          try {
-            localStorage.setItem('gxe_community_users_cache', JSON.stringify(mergedList));
-          } catch {
-            // ignore quota
-          }
-          onUpdate(mergedList);
-        },
-        (err) => {
-          console.warn('Cloud users subscription notice (using local users):', err);
-          onUpdate(getKnownCommunityUsers());
-        }
-      );
-    } catch (e) {
-      console.warn('Could not subscribe to cloud users:', e);
+      const cloudUsers = await apiFetch<User[]>('/api/users');
+      if (Array.isArray(cloudUsers) && isSubscribed) {
+        const mergedMap = new Map<string, User>();
+        getKnownCommunityUsers().forEach((u) => mergedMap.set(u.id, u));
+        cloudUsers.forEach((u) => mergedMap.set(u.id, u));
+        const mergedList = Array.from(mergedMap.values());
+        try {
+          localStorage.setItem('gxe_community_users_cache', JSON.stringify(mergedList));
+        } catch {}
+        onUpdate(mergedList);
+      }
+    } catch (err) {
+      console.warn('Cloudflare community users sync notice:', err);
     }
-  }
+  };
 
-  return () => {};
+  fetchUsers();
+
+  const intervalId = setInterval(() => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      fetchUsers();
+    }
+  }, 5000);
+
+  return () => {
+    isSubscribed = false;
+    clearInterval(intervalId);
+  };
 }
