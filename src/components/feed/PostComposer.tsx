@@ -34,6 +34,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isPublishingRef = useRef(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,9 +58,10 @@ export const PostComposer: React.FC<PostComposerProps> = ({
   };
 
   const handlePublish = async () => {
-    if ((!content.trim() && !selectedFile) || isSubmitting) return;
+    if ((!content.trim() && !selectedFile) || isSubmitting || isPublishingRef.current) return;
 
     try {
+      isPublishingRef.current = true;
       setIsSubmitting(true);
       let mediaData: { url: string; name: string; size: string; type: 'image' | 'video' | 'file' } | undefined;
 
@@ -90,6 +92,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
       console.error('Failed to publish post:', error);
       if (onNotify) onNotify('حدث خطأ أثناء الهري، حاول مجدداً', 'info');
     } finally {
+      isPublishingRef.current = false;
       setIsSubmitting(false);
       setUploadProgress(null);
     }

@@ -139,7 +139,6 @@ export const MainFeed: React.FC<MainFeedProps> = ({
       <PostComposer
         currentUser={currentUser}
         onPostCreated={() => {
-          setDisplayedPosts(posts);
           setNewPostsCount(0);
           topAnchorRef.current?.scrollIntoView({ behavior: 'smooth' });
         }}

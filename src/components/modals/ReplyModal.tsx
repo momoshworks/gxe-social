@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Sparkles, MessageCircle } from 'lucide-react';
 import type { Post, Comment, User } from '../../types';
 import { subscribeToComments, addComment } from '../../services/dbService';
@@ -19,6 +19,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
   const [comments, setComments] = useState<Comment[]>([]);
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     if (!post) return;
@@ -32,17 +33,19 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!replyText.trim() || isSubmitting) return;
+    if (!replyText.trim() || isSubmitting || isSubmittingRef.current) return;
 
     try {
+      isSubmittingRef.current = true;
       setIsSubmitting(true);
       await addComment(post, currentUser, replyText.trim());
       setReplyText('');
-      if (onNotify) onNotify('تم نشر الرد بنجاح!', 'success');
+      if (onNotify) onNotify('تم الفتي بالهاري بنجاح! ⚡', 'success');
     } catch (err) {
       console.error('Failed to add comment:', err);
-      if (onNotify) onNotify('تعذر نشر الرد، يرجى المحاولة ثانية', 'info');
+      if (onNotify) onNotify('تعذر نشر الهاري، يرجى المحاولة ثانية', 'info');
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };

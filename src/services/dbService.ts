@@ -137,9 +137,63 @@ function setLocalNotifications(notifs: AppNotification[]) {
 
 function mergePosts(cloud: Post[], local: Post[]): Post[] {
   const map = new Map<string, Post>();
-  local.forEach((p) => map.set(p.id, p));
-  cloud.forEach((p) => map.set(p.id, p));
-  return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+
+  // Prioritize cloud posts first, then local posts
+  const all = [...cloud, ...local].sort((a, b) => b.createdAt - a.createdAt);
+  const result: Post[] = [];
+
+  for (const p of all) {
+    if (map.has(p.id)) continue;
+    map.set(p.id, p);
+
+    const authorId = p.author?.id || 'unknown';
+    const cleanContent = (p.content || '').trim().replace(/\s+/g, ' ');
+
+    // Deduplication: same author + identical text within 3 minutes = duplicate
+    const isDup = result.some((existing) => {
+      const existingAuthor = existing.author?.id || 'unknown';
+      const existingContent = (existing.content || '').trim().replace(/\s+/g, ' ');
+      const sameAuthor = existingAuthor === authorId;
+      const sameContent = existingContent === cleanContent;
+      const withinWindow = Math.abs((existing.createdAt || 0) - (p.createdAt || 0)) < 180000;
+      return sameAuthor && sameContent && withinWindow;
+    });
+
+    if (isDup) {
+      continue;
+    }
+    result.push(p);
+  }
+
+  return result.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+function mergeComments(cloud: Comment[], local: Comment[]): Comment[] {
+  const all = [...cloud, ...local].sort((a, b) => a.createdAt - b.createdAt);
+  const result: Comment[] = [];
+  const map = new Map<string, Comment>();
+
+  for (const c of all) {
+    if (map.has(c.id)) continue;
+    map.set(c.id, c);
+
+    const authorId = c.author?.id || 'unknown';
+    const cleanText = (c.text || '').trim().replace(/\s+/g, ' ');
+
+    const isDup = result.some((existing) => {
+      const existingAuthor = existing.author?.id || 'unknown';
+      const existingText = (existing.text || '').trim().replace(/\s+/g, ' ');
+      const sameAuthor = existingAuthor === authorId;
+      const sameText = existingText === cleanText;
+      const withinWindow = Math.abs((existing.createdAt || 0) - (c.createdAt || 0)) < 120000;
+      return sameAuthor && sameText && withinWindow;
+    });
+
+    if (isDup) continue;
+    result.push(c);
+  }
+
+  return result.sort((a, b) => a.createdAt - b.createdAt);
 }
 
 /**
@@ -228,10 +282,33 @@ export function subscribeToPosts(onUpdate: (posts: Post[]) => void): Unsubscribe
  * Create a new Post in Firestore
  */
 export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'likes' | 'reposts' | 'commentsCount'>): Promise<string> {
+  const author = newPostData.author;
+  const authorName = (author.name && author.name.trim().length > 0) ? author.name.trim().substring(0, 100) : 'مستخدم GXE';
+  const authorUsername = (author.username && author.username.trim().length > 0) ? author.username.trim().substring(0, 50) : 'gxe_user';
+  const authorId = (author.id && String(author.id).trim().length > 0) ? String(author.id).trim().substring(0, 128) : 'user';
+  const authorAvatar = (author.avatar && author.avatar.length <= 2000)
+    ? author.avatar
+    : `https://api.dicebear.com/7.x/bottts/svg?seed=${authorId}`;
+
+  const sanitizedAuthor = {
+    id: authorId,
+    name: authorName,
+    username: authorUsername,
+    avatar: authorAvatar,
+  };
+
+  const postId = 'post_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  const now = Date.now();
+
   const fullPost: Post = {
     ...newPostData,
-    id: 'post_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    createdAt: Date.now(),
+    id: postId,
+    author: {
+      ...newPostData.author,
+      ...sanitizedAuthor,
+    },
+    content: newPostData.content.trim(),
+    createdAt: now,
     likes: 0,
     reposts: 0,
     commentsCount: 0,
@@ -240,15 +317,18 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
     bookmarkedBy: [],
   };
 
-  // 1. Optimistic update (0ms): Appears on user's feed instantly
+  // 1. Optimistic update (0ms): Appears on user's feed instantly and deduplicates
   const currentPosts = getLocalPosts();
-  setLocalPosts([fullPost, ...currentPosts]);
+  const mergedLocal = mergePosts([fullPost], currentPosts);
+  setLocalPosts(mergedLocal);
 
+  // 2. Cloud Firestore Save using setDoc with matching ID (Never creates mismatching doc IDs!)
   if (db) {
     try {
-      const postsRef = collection(db, 'posts');
-      const addDocPromise = addDoc(postsRef, {
-        author: fullPost.author,
+      const postDocRef = doc(db, 'posts', fullPost.id);
+      const postPayload = {
+        id: fullPost.id,
+        author: sanitizedAuthor,
         content: fullPost.content,
         mediaUrl: fullPost.mediaUrl || null,
         mediaType: fullPost.mediaType || null,
@@ -261,19 +341,20 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
         likedBy: [],
         repostedBy: [],
         bookmarkedBy: [],
-      });
+      };
 
-      // 3.5s timeout race: ensures mobile UI never hangs if network is slow or offline
+      // Set directly in Firestore with postDocRef
+      const setDocPromise = setDoc(postDocRef, postPayload);
+
+      // 6-second timeout race: ensures reliable upload even on mobile networks
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 3500)
+        setTimeout(() => reject(new Error('timeout')), 6000)
       );
 
-      const docRef = await Promise.race([addDocPromise, timeoutPromise]);
-      if (docRef && (docRef as any).id) {
-        return (docRef as any).id;
-      }
+      await Promise.race([setDocPromise, timeoutPromise]);
+      return fullPost.id;
     } catch (err) {
-      console.warn('Failed to add post to Firestore, kept in local cache:', err);
+      console.warn('Firestore post sync notice (saved locally and will sync):', err);
     }
   }
 
@@ -469,10 +550,7 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
           // Merge with local comments so fresh submissions are never wiped
           const allLocal = getLocalComments();
           const thisPostLocal = allLocal.filter((c) => c.postId === postId);
-          const map = new Map<string, Comment>();
-          thisPostLocal.forEach((c) => map.set(c.id, c));
-          cloudList.forEach((c) => map.set(c.id, c));
-          const merged = Array.from(map.values()).sort((a, b) => a.createdAt - b.createdAt);
+          const merged = mergeComments(cloudList, thisPostLocal);
 
           // Update cache with merged
           const otherLocal = allLocal.filter((c) => c.postId !== postId);
@@ -517,18 +595,35 @@ export function subscribeToComments(postId: string, onUpdate: (comments: Comment
  * Add a Comment to a Post (Visible to everyone!)
  */
 export async function addComment(post: Post, author: User, text: string): Promise<Comment> {
+  const commId = 'comm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  const now = Date.now();
+
+  const authorName = (author.name && author.name.trim().length > 0) ? author.name.trim().substring(0, 100) : 'مستخدم GXE';
+  const authorUsername = (author.username && author.username.trim().length > 0) ? author.username.trim().substring(0, 50) : 'gxe_user';
+  const authorId = (author.id && String(author.id).trim().length > 0) ? String(author.id).trim().substring(0, 128) : 'user';
+  const authorAvatar = (author.avatar && author.avatar.length <= 2000)
+    ? author.avatar
+    : `https://api.dicebear.com/7.x/bottts/svg?seed=${authorId}`;
+
+  const sanitizedAuthor = {
+    id: authorId,
+    name: authorName,
+    username: authorUsername,
+    avatar: authorAvatar,
+  };
+
   const newComment: Comment = {
-    id: 'comm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+    id: commId,
     postId: post.id,
-    author,
+    author: sanitizedAuthor,
     text: text.trim(),
-    createdAt: Date.now(),
+    createdAt: now,
     likes: 0,
   };
 
   // 1. Optimistic instant local save (0ms) - instantly updates UI
   const currentComments = getLocalComments();
-  const updatedComments = [...currentComments, newComment];
+  const updatedComments = mergeComments([newComment], currentComments);
   setLocalComments(updatedComments, post.id);
 
   // Update local post comments counter
@@ -541,25 +636,25 @@ export async function addComment(post: Post, author: User, text: string): Promis
   });
   setLocalPosts(updatedPosts);
 
-  // 2. Cloud Firestore sync with timeout race so it never blocks or fails silently
+  // 2. Cloud Firestore sync with setDoc using matching ID!
   if (db) {
     try {
-      const addDocPromise = addDoc(collection(db, 'comments'), {
+      const commentDocRef = doc(db, 'comments', newComment.id);
+      const commentPayload = {
+        id: newComment.id,
         postId: newComment.postId,
-        author: newComment.author,
+        author: sanitizedAuthor,
         text: newComment.text,
         createdAt: newComment.createdAt,
         likes: 0,
-      });
+      };
 
+      const setDocPromise = setDoc(commentDocRef, commentPayload);
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 3500)
+        setTimeout(() => reject(new Error('timeout')), 6000)
       );
 
-      const docRef = await Promise.race([addDocPromise, timeoutPromise]);
-      if (docRef && (docRef as any).id) {
-        newComment.id = (docRef as any).id;
-      }
+      await Promise.race([setDocPromise, timeoutPromise]);
 
       // Update counter in Firestore
       try {
@@ -575,7 +670,7 @@ export async function addComment(post: Post, author: User, text: string): Promis
       if (post.author.id !== author.id) {
         await addNotification({
           recipientId: post.author.id,
-          sender: author,
+          sender: sanitizedAuthor,
           type: 'comment',
           postId: post.id,
           postContent: text.substring(0, 60),
