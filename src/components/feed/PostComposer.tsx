@@ -109,8 +109,11 @@ export const PostComposer: React.FC<PostComposerProps> = ({
     <div className="border-b border-[#2f3336] p-4 flex gap-3 bg-[#000000]">
       {/* Current User Avatar */}
       <img
-        src={currentUser.avatar}
+        src={currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.id || 'user')}`}
         alt={currentUser.name}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.id || 'user')}`;
+        }}
         className="w-10 h-10 rounded-full object-cover shrink-0 select-none cursor-pointer hover:opacity-90 transition-opacity"
       />
 

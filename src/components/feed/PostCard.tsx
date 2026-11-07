@@ -167,8 +167,11 @@ export const PostCard: React.FC<PostCardProps> = ({
       <div className="flex gap-3">
         {/* Author Avatar */}
         <img
-          src={post.author.avatar}
+          src={post.author.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(post.author.id || 'user')}`}
           alt={post.author.name}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(post.author.id || 'user')}`;
+          }}
           className="w-10 h-10 rounded-full object-cover shrink-0 select-none hover:opacity-90 transition-opacity"
           onClick={(e) => {
             e.stopPropagation();

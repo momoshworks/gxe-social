@@ -77,8 +77,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {/* Avatar & Edit Action */}
         <div className="flex justify-between items-end relative -mt-14 sm:-mt-16 mb-4">
           <img
-            src={currentUser.avatar}
+            src={currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.id || 'user')}`}
             alt={currentUser.name}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.id || 'user')}`;
+            }}
             className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-black bg-black shadow-xl"
           />
           <div className="flex items-center gap-2">

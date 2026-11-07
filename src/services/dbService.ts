@@ -286,7 +286,7 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
   const authorName = (author.name && author.name.trim().length > 0) ? author.name.trim().substring(0, 100) : 'مستخدم GXE';
   const authorUsername = (author.username && author.username.trim().length > 0) ? author.username.trim().substring(0, 50) : 'gxe_user';
   const authorId = (author.id && String(author.id).trim().length > 0) ? String(author.id).trim().substring(0, 128) : 'user';
-  const authorAvatar = (author.avatar && author.avatar.length <= 2000)
+  const authorAvatar = (author.avatar && author.avatar.trim().length > 0)
     ? author.avatar
     : `https://api.dicebear.com/7.x/bottts/svg?seed=${authorId}`;
 
@@ -601,7 +601,7 @@ export async function addComment(post: Post, author: User, text: string): Promis
   const authorName = (author.name && author.name.trim().length > 0) ? author.name.trim().substring(0, 100) : 'مستخدم GXE';
   const authorUsername = (author.username && author.username.trim().length > 0) ? author.username.trim().substring(0, 50) : 'gxe_user';
   const authorId = (author.id && String(author.id).trim().length > 0) ? String(author.id).trim().substring(0, 128) : 'user';
-  const authorAvatar = (author.avatar && author.avatar.length <= 2000)
+  const authorAvatar = (author.avatar && author.avatar.trim().length > 0)
     ? author.avatar
     : `https://api.dicebear.com/7.x/bottts/svg?seed=${authorId}`;
 
@@ -946,17 +946,18 @@ export function subscribeToUserDoc(
             const data = snap.data();
             const following = data.following || [];
             const followers = data.followers || [];
-            onUpdate({
-              name: data.name,
-              username: data.username,
-              avatar: data.avatar,
-              bio: data.bio,
-              coverUrl: data.coverUrl,
+            const userUpdate: Partial<User> = {
               following,
               followers,
               followingCount: data.followingCount || following.length,
               followersCount: data.followersCount || followers.length,
-            });
+            };
+            if (data.name && String(data.name).trim().length > 0) userUpdate.name = data.name;
+            if (data.username && String(data.username).trim().length > 0) userUpdate.username = data.username;
+            if (data.avatar && String(data.avatar).trim().length > 0) userUpdate.avatar = data.avatar;
+            if (data.bio !== undefined) userUpdate.bio = data.bio;
+            if (data.coverUrl) userUpdate.coverUrl = data.coverUrl;
+            onUpdate(userUpdate);
           }
         },
         (err) => {

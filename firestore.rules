@@ -10,8 +10,8 @@ rules_version = '2';
 //    - id: string (optional) - user identifier
 //    - name: string (required, 1..100 chars) - display name
 //    - username: string (required, 1..50 chars) - unique handle
-//    - avatar: string (required, <= 2000 chars) - profile avatar URL
-//    - coverUrl: string (optional, <= 2000 chars) - profile cover URL
+//    - avatar: string (required, <= 150000 chars) - profile avatar URL or data URL
+//    - coverUrl: string (optional, <= 150000 chars) - profile cover URL or data URL
 //    - email: string (optional, <= 150 chars) - email address
 //    - bio: string (optional, <= 500 chars) - user bio
 //    - location: string (optional, <= 200 chars) - location
@@ -107,7 +107,7 @@ service cloud.firestore {
         author.id is string && author.id.size() > 0 && author.id.size() <= 128 &&
         author.name is string && author.name.size() > 0 && author.name.size() <= 100 &&
         author.username is string && author.username.size() > 0 && author.username.size() <= 50 &&
-        author.avatar is string && author.avatar.size() <= 2000;
+        author.avatar is string && author.avatar.size() <= 150000;
     }
 
     // ===============================================================
@@ -124,10 +124,10 @@ service cloud.firestore {
       return data.keys().hasOnly(allowed) &&
         data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
         data.username is string && data.username.size() > 0 && data.username.size() <= 50 &&
-        data.avatar is string && data.avatar.size() <= 2000 &&
+        data.avatar is string && data.avatar.size() <= 150000 &&
         (!('id' in data) || (data.id is string && data.id.size() <= 128)) &&
         (!('bio' in data) || (data.bio is string && data.bio.size() <= 500)) &&
-        (!('coverUrl' in data) || (data.coverUrl is string && data.coverUrl.size() <= 2000)) &&
+        (!('coverUrl' in data) || data.coverUrl == null || (data.coverUrl is string && data.coverUrl.size() <= 150000)) &&
         (!('email' in data) || (data.email is string && data.email.size() <= 150)) &&
         (!('location' in data) || (data.location is string && data.location.size() <= 200)) &&
         (!('website' in data) || (data.website is string && data.website.size() <= 500)) &&

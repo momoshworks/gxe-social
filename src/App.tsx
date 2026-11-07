@@ -70,9 +70,14 @@ export const App: React.FC = () => {
     if (!currentUser.id) return;
     const unsub = subscribeToUserDoc(currentUser.id, (updates) => {
       setCurrentUser((prev) => {
+        // Critical: Never overwrite valid local avatar/name with undefined/empty values from cloud partial docs!
         const merged: User = {
           ...prev,
-          ...updates,
+          name: (updates.name && updates.name.trim().length > 0) ? updates.name : prev.name,
+          username: (updates.username && updates.username.trim().length > 0) ? updates.username : prev.username,
+          avatar: (updates.avatar && updates.avatar.trim().length > 0) ? updates.avatar : prev.avatar,
+          bio: updates.bio !== undefined ? updates.bio : prev.bio,
+          coverUrl: updates.coverUrl || prev.coverUrl,
           following: updates.following && updates.following.length > 0 ? updates.following : (prev.following || []),
           followers: updates.followers && updates.followers.length > 0 ? updates.followers : (prev.followers || []),
           followingCount: updates.followingCount ?? prev.followingCount,

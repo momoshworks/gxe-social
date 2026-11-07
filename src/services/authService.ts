@@ -35,6 +35,9 @@ export function getLocalSavedUser(): User {
       return {
         ...DEFAULT_GUEST_USER,
         ...parsed,
+        name: parsed.name || DEFAULT_GUEST_USER.name,
+        username: parsed.username || DEFAULT_GUEST_USER.username,
+        avatar: (parsed.avatar && parsed.avatar.trim().length > 0) ? parsed.avatar : DEFAULT_GUEST_USER.avatar,
         following: parsed.following || [],
         followers: parsed.followers || [],
         followingCount: parsed.followingCount || (parsed.following?.length || 0),

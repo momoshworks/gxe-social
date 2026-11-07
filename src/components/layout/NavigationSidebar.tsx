@@ -129,8 +129,11 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
               onClick={() => setActiveTab('profile')}
             >
               <img
-                src={currentUser.avatar}
+                src={currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.id || 'user')}`}
                 alt={currentUser.name}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.id || 'user')}`;
+                }}
                 className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#2f3336]"
               />
               <div className="hidden xl:flex flex-col leading-tight min-w-0">
