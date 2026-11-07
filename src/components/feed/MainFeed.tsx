@@ -82,10 +82,16 @@ export const MainFeed: React.FC<MainFeedProps> = ({
       <div ref={topAnchorRef} />
 
       {/* Sticky Dual Header: لك (For You) & متابَعون (Following) */}
-      <div className="sticky top-0 z-30 bg-[#000000]/80 backdrop-blur-md border-b border-[#2f3336]">
+      <div className="sticky top-0 z-30 bg-[#000000]/85 backdrop-blur-md border-b border-[#2f3336]">
         <div className="px-4 py-3 flex items-center justify-between border-b border-[#2f3336]/40">
-          <h1 className="font-bold text-lg text-[#e7e9ea]">الرئيسية</h1>
-          <Sparkles className="w-5 h-5 text-[#1d9bf0]" />
+          <div className="flex items-center gap-2">
+            <h1 className="font-extrabold text-lg text-white">شريان النبضات</h1>
+            <span className="flex items-center gap-1 text-[11px] font-semibold text-[#00ba7c] bg-[#00ba7c]/10 border border-[#00ba7c]/30 px-2 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00ba7c] animate-ping" />
+              <span>نبض مباشر</span>
+            </span>
+          </div>
+          <Sparkles className="w-5 h-5 text-[#00f0ff]" />
         </div>
 
         {/* Tabs */}
@@ -96,13 +102,13 @@ export const MainFeed: React.FC<MainFeedProps> = ({
           >
             <span
               className={`text-sm ${
-                feedTab === 'for_you' ? 'font-bold text-[#e7e9ea]' : 'font-medium text-[#71767b]'
+                feedTab === 'for_you' ? 'font-bold text-white' : 'font-medium text-[#71767b]'
               }`}
             >
               لك (الجميع)
             </span>
             {feedTab === 'for_you' && (
-              <span className="absolute bottom-0 h-1 w-12 bg-[#1d9bf0] rounded-full" />
+              <span className="absolute bottom-0 h-1 w-14 bg-gradient-to-r from-[#00f0ff] to-[#00ba7c] rounded-full shadow-sm shadow-[#00f0ff]/50" />
             )}
           </button>
 
@@ -112,13 +118,13 @@ export const MainFeed: React.FC<MainFeedProps> = ({
           >
             <span
               className={`text-sm ${
-                feedTab === 'following' ? 'font-bold text-[#e7e9ea]' : 'font-medium text-[#71767b]'
+                feedTab === 'following' ? 'font-bold text-white' : 'font-medium text-[#71767b]'
               }`}
             >
-              متابَعون ({currentUser.following?.length || 0})
+              النبضات المتابعة ({currentUser.following?.length || 0})
             </span>
             {feedTab === 'following' && (
-              <span className="absolute bottom-0 h-1 w-16 bg-[#1d9bf0] rounded-full" />
+              <span className="absolute bottom-0 h-1 w-20 bg-gradient-to-r from-[#00f0ff] to-[#00ba7c] rounded-full shadow-sm shadow-[#00ba7c]/50" />
             )}
           </button>
         </div>

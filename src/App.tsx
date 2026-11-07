@@ -24,6 +24,7 @@ import { CloudSettingsModal } from './components/modals/CloudSettingsModal';
 import { AuthModal } from './components/modals/AuthModal';
 import { Toast, type ToastMessage } from './components/common/Toast';
 import { PwaUpdatePrompt } from './components/common/PwaUpdatePrompt';
+import { FloatingPopNotification } from './components/common/FloatingPopNotification';
 import { Home, Hash, Bell, Mail, Feather, User as UserIcon, LogIn, LogOut, Download } from 'lucide-react';
 import logoImg from './assets/logo.png';
 
@@ -278,6 +279,17 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-[#000000] text-[#e7e9ea] flex flex-col items-center selection:bg-[#1d9bf0] selection:text-white">
       {/* Auto Update Notification Banner */}
       <PwaUpdatePrompt />
+
+      {/* Dynamic Pop Notification Bar (Auto-dismisses after 4.5s) */}
+      <FloatingPopNotification
+        onNavigate={(tab, data) => {
+          if (tab) setActiveTab(tab);
+          if (data?.senderId && communityUsers.length > 0) {
+            const user = communityUsers.find((u) => u.id === data.senderId);
+            if (user) setSelectedChatUser(user);
+          }
+        }}
+      />
 
       {/* Mobile Top App Bar (Only visible on mobile browsers) */}
       <div className="md:hidden sticky top-0 inset-x-0 w-full bg-[#000000]/95 backdrop-blur-md border-b border-[#2f3336] px-4 py-2.5 flex items-center justify-between z-40">

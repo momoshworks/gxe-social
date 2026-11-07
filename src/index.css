@@ -37,6 +37,15 @@
   100% { transform: scale(1); }
 }
 
+@keyframes pop-countdown {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}
+
 .animate-heart {
   animation: heart-burst 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-pop-progress {
+  animation: pop-countdown 4.5s linear forwards;
 }

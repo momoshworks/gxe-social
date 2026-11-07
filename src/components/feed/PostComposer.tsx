@@ -8,6 +8,7 @@ import {
   X,
   Sparkles,
   Globe,
+  Zap,
 } from 'lucide-react';
 import type { User } from '../../types';
 import { uploadMediaFile } from '../../services/storageService';
@@ -118,7 +119,7 @@ export const PostComposer: React.FC<PostComposerProps> = ({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="ماذا يحدث الآن؟!"
+          placeholder="ماذا يدور في عقلك الآن؟ أطلق نبضتك للعالم..."
           rows={3}
           className="w-full bg-transparent text-[#e7e9ea] placeholder-[#71767b] text-lg outline-none resize-none leading-relaxed border-none focus:ring-0"
         />
@@ -247,15 +248,18 @@ export const PostComposer: React.FC<PostComposerProps> = ({
             <button
               onClick={handlePublish}
               disabled={(!content.trim() && !selectedFile) || isSubmitting}
-              className="flex items-center gap-1.5 px-5 py-2 bg-[#1d9bf0] hover:bg-[#1a8cd8] active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-white font-bold text-sm rounded-full transition-all shadow-md shadow-[#1d9bf0]/20"
+              className="flex items-center gap-1.5 px-5 py-2 bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] hover:opacity-95 active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-black font-extrabold text-sm rounded-full transition-all shadow-md shadow-[#00f0ff]/20"
             >
               {isSubmitting ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>جاري النشر...</span>
+                  <span>جاري الإطلاق...</span>
                 </>
               ) : (
-                <span>نشر</span>
+                <>
+                  <Zap className="w-4 h-4 fill-current" />
+                  <span>إطلاق النبضة</span>
+                </>
               )}
             </button>
           </div>

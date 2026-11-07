@@ -6,10 +6,10 @@ import {
   Mail,
   Bookmark,
   User as UserIcon,
-  Feather,
   LogIn,
   LogOut,
   Smartphone,
+  Zap,
 } from 'lucide-react';
 import type { User } from '../../types';
 import logoImg from '../../assets/logo.png';
@@ -54,13 +54,20 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         {/* GXE Logo & Brand */}
         <div
           onClick={() => setActiveTab('home')}
-          className="p-2 hover:bg-[#181818] rounded-full transition-colors cursor-pointer text-[#e7e9ea] flex items-center gap-3"
-          title="GXE"
+          className="p-2 hover:bg-[#12141a] rounded-2xl transition-all cursor-pointer text-[#e7e9ea] flex items-center gap-3 group"
+          title="GXE Network"
         >
-          <img src={logoImg} alt="GXE Logo" className="w-9 h-9 object-contain drop-shadow" />
-          <span className="hidden xl:inline text-xl font-black tracking-wider text-[#e7e9ea]">
-            GXE
-          </span>
+          <div className="relative">
+            <img src={logoImg} alt="GXE Logo" className="w-10 h-10 object-contain rounded-xl border border-[#00f0ff]/40 shadow-lg shadow-[#00f0ff]/20 group-hover:scale-105 transition-transform" />
+            <span className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 bg-[#00ba7c] rounded-full border-2 border-black animate-pulse" />
+          </div>
+          <div className="hidden xl:flex flex-col leading-tight">
+            <span className="text-xl font-black tracking-wider text-white flex items-center gap-1.5">
+              <span>GXE</span>
+              <span className="text-[10px] bg-[#00f0ff]/15 text-[#00f0ff] border border-[#00f0ff]/30 px-1.5 py-0.5 rounded-full font-bold">PULSE</span>
+            </span>
+            <span className="text-[11px] text-[#71767b]">شبكة النبض الحي</span>
+          </div>
         </div>
 
         {/* Navigation Items */}
@@ -92,13 +99,13 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
           })}
         </nav>
 
-        {/* Big Blue "Post" Button */}
+        {/* Distinctive GXE Action Button: "إطلاق نبضة • Pulse" */}
         <button
           onClick={onOpenComposer}
-          className="mt-4 w-full bg-[#1d9bf0] hover:bg-[#1a8cd8] active:scale-98 text-white rounded-full font-bold p-3 xl:py-3.5 flex items-center justify-center transition-all shadow-lg shadow-[#1d9bf0]/20"
+          className="mt-4 w-full bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] hover:opacity-95 active:scale-95 text-black rounded-full font-black p-3 xl:py-3.5 flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#00f0ff]/25 border border-white/20"
         >
-          <Feather className="w-6 h-6 xl:hidden" />
-          <span className="hidden xl:inline text-lg">نشر في GXE</span>
+          <Zap className="w-5 h-5 fill-current" />
+          <span className="hidden xl:inline text-base tracking-wide">إطلاق نبضة ⚡</span>
         </button>
 
         {/* Direct Download Android APK */}
