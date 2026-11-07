@@ -6,9 +6,11 @@ import {
   extractTrendsFromPosts,
   toggleFollowUser,
   subscribeToUserDoc,
+  getLocalPosts,
+  getLocalNotifications,
 } from './services/dbService';
 import { subscribeToAuthState, logoutUser, saveLocalUser, getLocalSavedUser } from './services/authService';
-import { subscribeToCommunityUsers } from './services/messageService';
+import { subscribeToCommunityUsers, getKnownCommunityUsers } from './services/messageService';
 import { playNotificationSound, showBrowserNotification } from './services/notificationService';
 import { NavigationSidebar } from './components/layout/NavigationSidebar';
 import { MainFeed } from './components/feed/MainFeed';
@@ -32,9 +34,9 @@ export const App: React.FC = () => {
   // Always initialize from persisted local cache so followers and profile are loaded instantly (0ms) on reload
   const [currentUser, setCurrentUser] = useState<User>(() => getLocalSavedUser());
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [communityUsers, setCommunityUsers] = useState<User[]>([]);
+  const [posts, setPosts] = useState<Post[]>(() => getLocalPosts());
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => getLocalNotifications());
+  const [communityUsers, setCommunityUsers] = useState<User[]>(() => getKnownCommunityUsers());
   const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedChatUser, setSelectedChatUser] = useState<User | null>(null);

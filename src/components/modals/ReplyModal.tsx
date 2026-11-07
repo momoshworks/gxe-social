@@ -38,8 +38,12 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
     try {
       isSubmittingRef.current = true;
       setIsSubmitting(true);
-      await addComment(post, currentUser, replyText.trim());
-      setReplyText('');
+      const textToReply = replyText.trim();
+      setReplyText(''); // 0ms instantaneous clear!
+      setIsSubmitting(false);
+      isSubmittingRef.current = false;
+
+      await addComment(post, currentUser, textToReply);
       if (onNotify) onNotify('تم الفتي بالهاري بنجاح! ⚡', 'success');
     } catch (err) {
       console.error('Failed to add comment:', err);

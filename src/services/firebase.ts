@@ -1,5 +1,11 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { getAuth, type Auth } from 'firebase/auth';
 import type { FirebaseConfig } from '../types';
@@ -61,10 +67,21 @@ const config = getSavedConfig();
 if (config && config.apiKey && config.projectId) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(config);
-    db = getFirestore(app);
+
+    // Initialize ultra-fast persistent multi-tab local cache for 0ms reads and writes
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      });
+    } catch {
+      db = getFirestore(app);
+    }
+
     storage = getStorage(app);
     auth = getAuth(app);
-    console.log('🔥 Firebase Cloud initialized successfully with project:', config.projectId);
+    console.log('🔥 Firebase Cloud initialized with ultra-fast persistent cache:', config.projectId);
   } catch (error) {
     console.warn('⚠️ Could not initialize Firebase with current config:', error);
   }

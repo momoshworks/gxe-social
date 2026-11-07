@@ -115,32 +115,20 @@ export async function sendDirectMessage(
   const updated = [...current.filter((m) => m.id !== newMsg.id), newMsg];
   setLocalChatMessages(chatId, updated);
 
-  // 2. Background cloud sync with 3.5s timeout race so mobile UI NEVER hangs or crashes
+  // 2. Background cloud sync (0ms non-blocking!)
   if (db) {
-    try {
-      const chatMessagesRef = collection(db, 'chats', chatId, 'messages');
-      const addDocPromise = addDoc(chatMessagesRef, {
-        senderId,
-        receiverId,
-        participants: [senderId, receiverId].sort(),
-        text: text.trim(),
-        mediaUrl: mediaUrl || null,
-        createdAt: now,
-        read: false,
-      });
-
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 3500)
-      );
-
-      const docRef = await Promise.race([addDocPromise, timeoutPromise]);
-      if (docRef && (docRef as any).id) {
-        newMsg.id = (docRef as any).id;
-      }
-    } catch (err: any) {
+    const chatMessagesRef = collection(db, 'chats', chatId, 'messages');
+    addDoc(chatMessagesRef, {
+      senderId,
+      receiverId,
+      participants: [senderId, receiverId].sort(),
+      text: text.trim(),
+      mediaUrl: mediaUrl || null,
+      createdAt: now,
+      read: false,
+    }).catch((err: any) => {
       console.warn('Firestore direct message sync notice (saved locally):', err);
-      // DO NOT THROW! Message is safely preserved in local storage and active screen
-    }
+    });
   }
 
   // 3. Trigger push/in-app notification for the recipient!
@@ -284,7 +272,7 @@ export function subscribeToChat(
 /**
  * Harvest known users from local storage cache AND post authors so member list is never blank
  */
-function getKnownCommunityUsers(): User[] {
+export function getKnownCommunityUsers(): User[] {
   const usersMap = new Map<string, User>();
 
   try {

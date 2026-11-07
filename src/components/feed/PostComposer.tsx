@@ -72,19 +72,24 @@ export const PostComposer: React.FC<PostComposerProps> = ({
         });
       }
 
+      const contentToPublish = content.trim();
+
+      // Instant 0ms UI reset
+      setContent('');
+      removeSelectedFile();
+      setUploadProgress(null);
+      setIsSubmitting(false);
+      isPublishingRef.current = false;
+
+      // Add to feed & sync instantly
       await createPost({
         author: currentUser,
-        content: content.trim(),
+        content: contentToPublish,
         mediaUrl: mediaData?.url,
         mediaType: mediaData?.type,
         mediaName: mediaData?.name,
         mediaSize: mediaData?.size,
       });
-
-      // Reset
-      setContent('');
-      removeSelectedFile();
-      setUploadProgress(null);
 
       if (onNotify) onNotify('تم نشر الهارية بنجاح! 🚀', 'success');
       if (onPostCreated) onPostCreated();

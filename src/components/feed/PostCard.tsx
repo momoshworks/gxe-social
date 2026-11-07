@@ -26,7 +26,7 @@ interface PostCardProps {
   onNotify?: (text: string, type?: 'success' | 'info') => void;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({
+export const PostCard: React.FC<PostCardProps> = React.memo(({
   post,
   currentUser,
   onOpenReply,
@@ -169,6 +169,8 @@ export const PostCard: React.FC<PostCardProps> = ({
         <img
           src={post.author.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(post.author.id || 'user')}`}
           alt={post.author.name}
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(post.author.id || 'user')}`;
           }}
@@ -265,6 +267,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                     alt={post.mediaName || 'صورة المنشور'}
                     className="w-full h-auto max-h-96 object-cover hover:scale-[1.01] transition-transform duration-200"
                     loading="lazy"
+                    decoding="async"
                   />
 
                   {/* Direct Download Hover Button overlay */}
@@ -387,4 +390,4 @@ export const PostCard: React.FC<PostCardProps> = ({
       </div>
     </article>
   );
-};
+});

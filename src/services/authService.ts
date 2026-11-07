@@ -166,7 +166,7 @@ export async function syncUserToCloud(fbUser: FirebaseUser): Promise<User> {
 }
 
 /**
- * Sign in with Google Account
+ * Sign in with Google Account (Fast 1-click authentication)
  */
 export async function loginWithGoogle(): Promise<User> {
   if (!auth) {
@@ -174,8 +174,6 @@ export async function loginWithGoogle(): Promise<User> {
   }
 
   const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-
   const result = await signInWithPopup(auth, provider);
   return await syncUserToCloud(result.user);
 }

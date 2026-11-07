@@ -32,7 +32,7 @@ const channel = typeof window !== 'undefined' && 'BroadcastChannel' in window
 // Clean initial state: ZERO dummy/filler posts. Everything starts empty and real!
 const INITIAL_POSTS: Post[] = [];
 
-function getLocalPosts(): Post[] {
+export function getLocalPosts(): Post[] {
   try {
     const raw = localStorage.getItem(LOCAL_POSTS_KEY);
     if (raw) return JSON.parse(raw);
@@ -118,7 +118,7 @@ function setLocalComments(comments: Comment[], targetPostId?: string) {
   }
 }
 
-function getLocalNotifications(): AppNotification[] {
+export function getLocalNotifications(): AppNotification[] {
   try {
     const raw = localStorage.getItem(LOCAL_NOTIFS_KEY);
     if (raw) return JSON.parse(raw);
@@ -317,99 +317,64 @@ export async function createPost(newPostData: Omit<Post, 'id' | 'createdAt' | 'l
     bookmarkedBy: [],
   };
 
-  // 1. Optimistic update (0ms): Appears on user's feed instantly and deduplicates
+  // 1. Ultra-fast Optimistic update (0ms): Appears on user's feed instantly and deduplicates
   const currentPosts = getLocalPosts();
   const mergedLocal = mergePosts([fullPost], currentPosts);
   setLocalPosts(mergedLocal);
 
-  // 2. Cloud Firestore Save using setDoc with matching ID (Never creates mismatching doc IDs!)
+  // 2. Cloud Firestore Save in the background (0ms non-blocking!)
   if (db) {
-    try {
-      const postDocRef = doc(db, 'posts', fullPost.id);
-      const postPayload = {
-        id: fullPost.id,
-        author: sanitizedAuthor,
-        content: fullPost.content,
-        mediaUrl: fullPost.mediaUrl || null,
-        mediaType: fullPost.mediaType || null,
-        mediaName: fullPost.mediaName || null,
-        mediaSize: fullPost.mediaSize || null,
-        createdAt: fullPost.createdAt,
-        likes: 0,
-        reposts: 0,
-        commentsCount: 0,
-        likedBy: [],
-        repostedBy: [],
-        bookmarkedBy: [],
-      };
+    const postDocRef = doc(db, 'posts', fullPost.id);
+    const postPayload = {
+      id: fullPost.id,
+      author: sanitizedAuthor,
+      content: fullPost.content,
+      mediaUrl: fullPost.mediaUrl || null,
+      mediaType: fullPost.mediaType || null,
+      mediaName: fullPost.mediaName || null,
+      mediaSize: fullPost.mediaSize || null,
+      createdAt: fullPost.createdAt,
+      likes: 0,
+      reposts: 0,
+      commentsCount: 0,
+      likedBy: [],
+      repostedBy: [],
+      bookmarkedBy: [],
+    };
 
-      // Set directly in Firestore with postDocRef
-      const setDocPromise = setDoc(postDocRef, postPayload);
-
-      // 6-second timeout race: ensures reliable upload even on mobile networks
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 6000)
-      );
-
-      await Promise.race([setDocPromise, timeoutPromise]);
-      return fullPost.id;
-    } catch (err) {
-      console.warn('Firestore post sync notice (saved locally and will sync):', err);
-    }
+    setDoc(postDocRef, postPayload).catch((err) => {
+      console.warn('Firestore post background sync notice:', err);
+    });
   }
 
   return fullPost.id;
 }
 
 /**
- * Delete a Post from Firestore
+ * Delete a Post from Firestore (Instant 0ms removal + background sync)
  */
 export async function deletePost(postId: string): Promise<void> {
-  if (db) {
-    try {
-      await deleteDoc(doc(db, 'posts', postId));
-      return;
-    } catch (err) {
-      console.warn('Failed to delete post from Firestore:', err);
-    }
-  }
-
+  // 1. Instant optimistic local deletion (0ms) - vanishes immediately!
   const posts = getLocalPosts();
   const updated = posts.filter((p) => p.id !== postId);
   setLocalPosts(updated);
+
+  // 2. Cloud Firestore background delete
+  if (db) {
+    deleteDoc(doc(db, 'posts', postId)).catch((err) => {
+      console.warn('Failed to delete post from Firestore:', err);
+    });
+  }
 }
 
 /**
- * Toggle Like on a Post (Atomic in Firestore + Notification trigger)
+ * Toggle Like on a Post (Instant 0ms UI reaction + background sync)
  */
 export async function toggleLike(post: Post, currentUser: User): Promise<void> {
   const isLiked = post.likedBy?.includes(currentUser.id) ?? false;
   const newCount = Math.max(0, post.likes + (isLiked ? -1 : 1));
 
-  if (db) {
-    try {
-      const postRef = doc(db, 'posts', post.id);
-      await updateDoc(postRef, {
-        likes: increment(isLiked ? -1 : 1),
-        likedBy: isLiked ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
-      });
-
-      // Send real notification to author if someone else liked their post
-      if (!isLiked && post.author.id !== currentUser.id) {
-        await addNotification({
-          recipientId: post.author.id,
-          sender: currentUser,
-          type: 'like',
-          postId: post.id,
-          postContent: post.content.substring(0, 60),
-        });
-      }
-      return;
-    } catch (err) {
-      console.warn('Firestore like failed, applying locally:', err);
-    }
-  }
-
+  // 1. Instant optimistic local update (0ms)
   const posts = getLocalPosts();
   const updated = posts.map((p) => {
     if (p.id === post.id) {
@@ -421,47 +386,36 @@ export async function toggleLike(post: Post, currentUser: User): Promise<void> {
   });
   setLocalPosts(updated);
 
-  if (!isLiked && post.author.id !== currentUser.id) {
-    addNotification({
-      recipientId: post.author.id,
-      sender: currentUser,
-      type: 'like',
-      postId: post.id,
-      postContent: post.content.substring(0, 60),
+  // 2. Cloud Firestore background sync
+  if (db) {
+    const postRef = doc(db, 'posts', post.id);
+    updateDoc(postRef, {
+      likes: increment(isLiked ? -1 : 1),
+      likedBy: isLiked ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
+    }).catch((err) => {
+      console.warn('Firestore like failed:', err);
     });
+
+    if (!isLiked && post.author.id !== currentUser.id) {
+      addNotification({
+        recipientId: post.author.id,
+        sender: currentUser,
+        type: 'like',
+        postId: post.id,
+        postContent: post.content.substring(0, 60),
+      }).catch(() => {});
+    }
   }
 }
 
 /**
- * Toggle Repost on a Post
+ * Toggle Repost on a Post (Instant 0ms UI reaction + background sync)
  */
 export async function toggleRepost(post: Post, currentUser: User): Promise<void> {
   const isReposted = post.repostedBy?.includes(currentUser.id) ?? false;
   const newCount = Math.max(0, post.reposts + (isReposted ? -1 : 1));
 
-  if (db) {
-    try {
-      const postRef = doc(db, 'posts', post.id);
-      await updateDoc(postRef, {
-        reposts: increment(isReposted ? -1 : 1),
-        repostedBy: isReposted ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
-      });
-
-      if (!isReposted && post.author.id !== currentUser.id) {
-        await addNotification({
-          recipientId: post.author.id,
-          sender: currentUser,
-          type: 'repost',
-          postId: post.id,
-          postContent: post.content.substring(0, 60),
-        });
-      }
-      return;
-    } catch (err) {
-      console.warn('Firestore repost failed, applying locally:', err);
-    }
-  }
-
+  // 1. Instant optimistic local update (0ms)
   const posts = getLocalPosts();
   const updated = posts.map((p) => {
     if (p.id === post.id) {
@@ -472,6 +426,27 @@ export async function toggleRepost(post: Post, currentUser: User): Promise<void>
     return p;
   });
   setLocalPosts(updated);
+
+  // 2. Cloud Firestore background sync
+  if (db) {
+    const postRef = doc(db, 'posts', post.id);
+    updateDoc(postRef, {
+      reposts: increment(isReposted ? -1 : 1),
+      repostedBy: isReposted ? arrayRemove(currentUser.id) : arrayUnion(currentUser.id),
+    }).catch((err) => {
+      console.warn('Firestore repost failed:', err);
+    });
+
+    if (!isReposted && post.author.id !== currentUser.id) {
+      addNotification({
+        recipientId: post.author.id,
+        sender: currentUser,
+        type: 'repost',
+        postId: post.id,
+        postContent: post.content.substring(0, 60),
+      }).catch(() => {});
+    }
+  }
 }
 
 /**
@@ -636,48 +611,34 @@ export async function addComment(post: Post, author: User, text: string): Promis
   });
   setLocalPosts(updatedPosts);
 
-  // 2. Cloud Firestore sync with setDoc using matching ID!
+  // 2. Cloud Firestore background sync (0ms non-blocking!)
   if (db) {
-    try {
-      const commentDocRef = doc(db, 'comments', newComment.id);
-      const commentPayload = {
-        id: newComment.id,
-        postId: newComment.postId,
-        author: sanitizedAuthor,
-        text: newComment.text,
-        createdAt: newComment.createdAt,
-        likes: 0,
-      };
+    const commentDocRef = doc(db, 'comments', newComment.id);
+    const commentPayload = {
+      id: newComment.id,
+      postId: newComment.postId,
+      author: sanitizedAuthor,
+      text: newComment.text,
+      createdAt: newComment.createdAt,
+      likes: 0,
+    };
 
-      const setDocPromise = setDoc(commentDocRef, commentPayload);
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 6000)
-      );
+    setDoc(commentDocRef, commentPayload).catch((err) => {
+      console.warn('Comment cloud sync notice:', err);
+    });
 
-      await Promise.race([setDocPromise, timeoutPromise]);
+    updateDoc(doc(db, 'posts', post.id), {
+      commentsCount: increment(1),
+    }).catch(() => {});
 
-      // Update counter in Firestore
-      try {
-        const postRef = doc(db, 'posts', post.id);
-        await updateDoc(postRef, {
-          commentsCount: increment(1),
-        });
-      } catch (countErr) {
-        console.warn('Could not increment post commentsCount in cloud:', countErr);
-      }
-
-      // Send Notification to post author
-      if (post.author.id !== author.id) {
-        await addNotification({
-          recipientId: post.author.id,
-          sender: sanitizedAuthor,
-          type: 'comment',
-          postId: post.id,
-          postContent: text.substring(0, 60),
-        });
-      }
-    } catch (err) {
-      console.warn('Failed to add comment to Firestore, kept safely in local cache:', err);
+    if (post.author.id !== author.id) {
+      addNotification({
+        recipientId: post.author.id,
+        sender: sanitizedAuthor,
+        type: 'comment',
+        postId: post.id,
+        postContent: text.substring(0, 60),
+      }).catch(() => {});
     }
   }
 
