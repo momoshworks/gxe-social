@@ -27,7 +27,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
     }
     if (granted) {
       playNotificationSound();
-      showBrowserNotification('منصة GXE', 'تم تفعيل التنبيهات الفورية بنجاح على جهازك! 🔔');
+      showBrowserNotification('منصة GXE', { body: 'تم تفعيل التنبيهات الفورية بنجاح على جهازك! 🔔' });
       if (onNotify) onNotify('تم تفعيل إشعارات المتصفح بنجاح! 🔔', 'success');
     } else {
       if (onNotify) onNotify('لم يتم منح إذن الإشعارات', 'info');
@@ -42,123 +42,126 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   const getIcon = (type: AppNotification['type']) => {
     switch (type) {
       case 'like':
-        return <Heart className="w-5 h-5 text-[#f91880] fill-current" />;
+        return <Heart className="w-4 h-4 text-[#FF70A6] fill-current" />;
       case 'comment':
-        return <MessageCircle className="w-5 h-5 text-[#1d9bf0]" />;
+        return <MessageCircle className="w-4 h-4 text-[#70D6FF]" />;
       case 'repost':
-        return <Repeat className="w-5 h-5 text-[#00ba7c]" />;
+        return <Repeat className="w-4 h-4 text-[#00ba7c]" />;
       case 'follow':
-        return <UserPlus className="w-5 h-5 text-[#1d9bf0]" />;
+        return <UserPlus className="w-4 h-4 text-[#70D6FF]" />;
       case 'message':
-        return <MessageCircle className="w-5 h-5 text-[#00ba7c] fill-current" />;
+        return <MessageCircle className="w-4 h-4 text-[#00ba7c] fill-current" />;
     }
   };
 
   const getActionText = (type: AppNotification['type']) => {
     switch (type) {
       case 'like':
-        return 'أعجب بهاريتك';
+        return 'أعجب بحدثك';
       case 'comment':
-        return 'هَرَى على هاريتك:';
+        return 'علق على حدثك';
       case 'repost':
-        return 'أعاد نشر هاريتك';
+        return 'شارك حدثك';
       case 'follow':
-        return 'بدأ بمتابعتك الآن';
+        return 'بدأ بمتابعتك';
       case 'message':
-        return 'أرسل لك رسالة خاصة:';
+        return 'أرسل لك رسالة خاصة';
     }
   };
 
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   return (
-    <main className="flex-1 min-h-screen border-x border-[#2f3336] max-w-2xl w-full bg-[#000000]">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-30 bg-[#000000]/80 backdrop-blur-md border-b border-[#2f3336] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-[#1d9bf0]" />
-          <h1 className="font-bold text-lg text-[#e7e9ea]">الإشعارات</h1>
+    <div className="flex-1 max-w-4xl mx-auto w-full px-3 sm:px-6 py-4 flex flex-col gap-6">
+      {/* Header Panel */}
+      <div className="glass-panel p-5 sm:p-7 relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="card-accent-bar" />
+        <div className="space-y-1.5 z-10">
+          <div className="flex items-center gap-2">
+            <span className="card-num-badge">NOTIFICATIONS</span>
+            <span className="text-xs font-mono text-gray-400">REAL-TIME</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+            <span>مركز التنبيهات</span>
+            <Bell className="w-6 h-6 text-[#70D6FF]" />
+          </h1>
+          <p className="text-sm text-gray-300">
+            تابع تفاعلات الأعضاء، الرسائل الجديدة، والتحديثات الفورية في حسابك.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          {notifications.some((n) => !n.read) && (
+
+        <div className="flex items-center gap-2 z-10">
+          {browserPermission !== 'granted' && (
+            <button
+              onClick={handleEnablePush}
+              className="glass-btn-secondary px-3.5 py-1.5 text-xs flex items-center gap-1.5 text-[#70D6FF]"
+            >
+              <BellRing className="w-3.5 h-3.5" />
+              <span>تفعيل التنبيهات</span>
+            </button>
+          )}
+
+          {unreadCount > 0 && (
             <button
               onClick={handleMarkAllRead}
-              className="flex items-center gap-1.5 text-xs text-[#1d9bf0] hover:underline font-semibold"
+              className="glass-btn-primary px-3.5 py-1.5 text-xs flex items-center gap-1.5"
             >
-              <CheckCheck className="w-4 h-4" />
-              <span>تحديد الكل كمقروء</span>
+              <CheckCheck className="w-3.5 h-3.5" />
+              <span>تحديد كمقروء</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Enable Browser Notification Banner if not granted */}
-      {browserPermission !== 'granted' && (
-        <div className="p-4 m-3 bg-[#16181c] border border-[#1d9bf0]/40 rounded-2xl flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <BellRing className="w-5 h-5 text-[#1d9bf0] shrink-0 animate-bounce" />
-            <div>
-              <p className="font-bold text-[#e7e9ea]">تفعيل التنبيهات الفورية على جهازك</p>
-              <p className="text-[#71767b]">استقبل تنبيهاً فورياً عند وصول أي رسالة أو تفاعل حتى لو كان الموقع مغلقاً.</p>
-            </div>
-          </div>
-          <button
-            onClick={handleEnablePush}
-            className="px-4 py-2 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold rounded-full transition-colors shrink-0"
-          >
-            تفعيل الآن
-          </button>
-        </div>
-      )}
-
       {/* Notifications List */}
-      {notifications.length > 0 ? (
-        <div className="divide-y divide-[#2f3336]/60">
-          {notifications.map((notif) => (
+      <div className="glass-panel p-2 sm:p-4 divide-y divide-white/5">
+        {notifications.length > 0 ? (
+          notifications.map((notif) => (
             <div
               key={notif.id}
-              className={`p-4 flex gap-3 hover:bg-[#080808] transition-colors ${
-                !notif.read ? 'bg-[#1d9bf0]/5' : ''
+              className={`p-3.5 sm:p-4 rounded-2xl flex items-start gap-3.5 transition-colors ${
+                !notif.read ? 'bg-[#70D6FF]/10' : 'hover:bg-white/[0.03]'
               }`}
             >
-              <div className="pt-0.5">{getIcon(notif.type)}</div>
-              <div className="flex-1 min-w-0 text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <img
-                    src={notif.sender.avatar}
-                    alt={notif.sender.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <span className="font-bold text-[#e7e9ea]">{notif.sender.name}</span>
-                    <span className="text-[#71767b]">@{notif.sender.username}</span>
-                    <span className="text-xs text-[#71767b]">· {getActionText(notif.type)}</span>
-                  </div>
-                </div>
-
-                {notif.postContent && (
-                  <p className="text-xs text-[#71767b] line-clamp-2 bg-[#16181c] p-2.5 rounded-xl border border-[#2f3336]/40 mt-1.5">
-                    {notif.postContent}
-                  </p>
-                )}
-
-                <span className="text-[10px] text-[#71767b] block mt-1">
-                  {new Date(notif.createdAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+              <div className="relative shrink-0 mt-0.5">
+                <img
+                  src={notif.sender.avatar}
+                  alt={notif.sender.name}
+                  className="w-10 h-10 rounded-2xl object-cover border border-white/20"
+                />
+                <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#0B0F19] border border-white/20">
+                  {getIcon(notif.type)}
                 </span>
               </div>
+
+              <div className="flex-1 min-w-0 text-xs sm:text-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-bold text-white">{notif.sender.name}</span>
+                    <span className="text-gray-400 font-mono text-xs">@{notif.sender.username}</span>
+                    <span className="text-gray-300">{getActionText(notif.type)}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-gray-400 shrink-0 mr-2">
+                    {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+
+                {notif.content && (
+                  <p className="text-xs text-gray-300 leading-relaxed bg-white/[0.02] p-2 rounded-xl border border-white/5">
+                    {notif.content}
+                  </p>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="p-16 text-center text-[#71767b] flex flex-col items-center justify-center gap-3">
-          <Bell className="w-14 h-14 text-[#2f3336]" />
-          <h3 className="font-bold text-base text-[#e7e9ea]">لا توجد إشعارات جديدة</h3>
-          <p className="text-xs max-w-xs">
-            عندما يتفاعل أي شخص مع هريِك أو يرسل لك رسالة خاصة أو يتابعك، ستظهر إشعاراتك اللحظية هنا فوراً!
-          </p>
-        </div>
-      )}
-    </main>
+          ))
+        ) : (
+          <div className="p-12 text-center text-xs text-gray-400 space-y-2">
+            <Bell className="w-8 h-8 text-gray-500 mx-auto stroke-[1.5]" />
+            <p className="font-semibold text-white">لا توجد تنبيهات جديدة</p>
+            <p className="text-gray-500">ستظهر هنا تفاعلات الأعضاء ورسائلهم الجديدة فور حدوثها.</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

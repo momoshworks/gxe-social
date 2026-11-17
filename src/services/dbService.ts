@@ -151,14 +151,26 @@ function mergePosts(cloudPosts: Post[], localPosts: Post[]): Post[] {
   const map = new Map<string, Post>();
   const recentLocalThreshold = Date.now() - 3 * 60 * 1000;
 
-  // Add cloud posts first
-  cloudPosts.forEach((post) => map.set(post.id, post));
+  // Add cloud posts, deduplicating any accidental double-submits within 15 seconds
+  const cleanCloudPosts: Post[] = [];
+  cloudPosts.forEach((cp) => {
+    const isDouble = cleanCloudPosts.some(
+      (existing) =>
+        existing.author.id === cp.author.id &&
+        existing.content === cp.content &&
+        Math.abs(existing.createdAt - cp.createdAt) < 15000
+    );
+    if (!isDouble) {
+      cleanCloudPosts.push(cp);
+      map.set(cp.id, cp);
+    }
+  });
 
   // Merge any recent local posts that might still be syncing
   localPosts.forEach((lp) => {
     if (lp.createdAt > recentLocalThreshold && !map.has(lp.id)) {
       // Check for content/author duplicate within 60 seconds
-      const isDuplicate = cloudPosts.some(
+      const isDuplicate = cleanCloudPosts.some(
         (cp) =>
           cp.author.id === lp.author.id &&
           cp.content === lp.content &&
@@ -714,14 +726,6 @@ export function extractTrendsFromPosts(posts: Post[]): Trend[] {
       postsCount: `${count} هارية`,
       count,
     }));
-
-  if (topHashtags.length === 0) {
-    return [
-      { id: '1', category: 'الذكاء الاصطناعي', tag: '#GXE_2026', postsCount: '1.2K هارية', count: 1200 },
-      { id: '2', category: 'التقنية السحابية', tag: '#Cloudflare_Edge', postsCount: '890 هارية', count: 890 },
-      { id: '3', category: 'تطوير البرمجيات', tag: '#Web_Development', postsCount: '650 هارية', count: 650 },
-    ];
-  }
 
   return topHashtags;
 }

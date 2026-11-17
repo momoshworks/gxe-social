@@ -114,12 +114,12 @@ export async function loginWithGoogle(): Promise<User> {
 
   const googleUser: User = {
     id: googleUid,
-    name: localSaved.name !== 'مستخدم GXE' ? localSaved.name : 'أحمد سيف (Google)',
-    username: (localSaved.username !== 'gxe_user' ? localSaved.username : 'ahmed_seif').toLowerCase(),
+    name: localSaved.name && localSaved.name !== 'مستخدم GXE' ? localSaved.name : 'مستخدم Google',
+    username: (localSaved.username && localSaved.username !== 'gxe_user' ? localSaved.username : `google_user_${googleUid.substring(7, 11)}`).toLowerCase(),
     avatar: localSaved.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${googleUid}`,
     email: 'user@gmail.com',
     verified: true,
-    bio: 'عضو موثّق بحساب Google عبر السحابة العالمية 🚀',
+    bio: 'عضو موثّق بحساب Google 🚀',
     following: localSaved.following || [],
     followers: localSaved.followers || [],
     followingCount: localSaved.followingCount || 0,

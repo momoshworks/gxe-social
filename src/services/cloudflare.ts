@@ -18,6 +18,14 @@ export function getApiBaseUrl(): string {
   return CLOUDFLARE_WORKER_URL;
 }
 
+export function resolveMediaUrl(url: string | undefined | null): string {
+  if (!url) return '';
+  if (url.startsWith('/api/')) {
+    return `${CLOUDFLARE_WORKER_URL}${url}`;
+  }
+  return url;
+}
+
 export async function apiFetch<T = any>(endpoint: string, options?: RequestInit): Promise<T> {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;

@@ -1,4 +1,4 @@
-import { apiFetch } from './cloudflare';
+import { apiFetch, resolveMediaUrl } from './cloudflare';
 
 export interface UploadProgressCallback {
   (progress: number): void;
@@ -153,6 +153,7 @@ export async function uploadMediaFile(
       name: file.name,
       size: formatFileSize(compressedBlob.size || file.size),
       type: mediaType,
+      mimeType: file.type || 'image/jpeg',
     };
 
     const res = await apiFetch<UploadedMedia>('/api/upload', {
@@ -160,9 +161,11 @@ export async function uploadMediaFile(
       body: JSON.stringify(payload),
     });
 
+    const finalUrl = resolveMediaUrl(res.url) || compressedDataUrl;
+
     if (onProgress) onProgress(100);
     return {
-      url: res.url || compressedDataUrl,
+      url: finalUrl,
       name: file.name,
       size: formatFileSize(compressedBlob.size || file.size),
       type: mediaType,

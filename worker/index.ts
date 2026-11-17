@@ -426,10 +426,42 @@ export default {
       }
 
       // 5. Direct Messages (DMs)
+      // WhatsApp-style Conversations list for a user
+      const chatsListMatch = url.pathname.match(/^\/api\/chats\/([^/]+)$/);
+      if (chatsListMatch && request.method === 'GET') {
+        const userId = chatsListMatch[1];
+        const query = `
+          SELECT m.* FROM messages m
+          INNER JOIN (
+            SELECT chatId, MAX(createdAt) as maxCreatedAt
+            FROM messages
+            WHERE senderId = ? OR receiverId = ?
+            GROUP BY chatId
+          ) latest ON m.chatId = latest.chatId AND m.createdAt = latest.maxCreatedAt
+          ORDER BY m.createdAt DESC
+          LIMIT 50
+        `;
+        const { results } = await env.DB.prepare(query).bind(userId, userId).all();
+        const chats = (results || []).map((row: any) => ({
+          id: row.id,
+          chatId: row.chatId,
+          senderId: row.senderId,
+          receiverId: row.receiverId,
+          senderName: row.senderName || undefined,
+          senderAvatar: row.senderAvatar || undefined,
+          text: row.text,
+          mediaUrl: row.mediaUrl || undefined,
+          mediaType: row.mediaType || undefined,
+          createdAt: Number(row.createdAt),
+          read: Boolean(row.read),
+        }));
+        return json(chats);
+      }
+
       const chatMatch = url.pathname.match(/^\/api\/messages\/([^/]+)$/);
       if (chatMatch && request.method === 'GET') {
         const chatId = chatMatch[1];
-        const { results } = await env.DB.prepare('SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt ASC').bind(chatId).all();
+        const { results } = await env.DB.prepare('SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt ASC LIMIT 200').bind(chatId).all();
         const messages = (results || []).map((row: any) => ({
           id: row.id,
           chatId: row.chatId,
@@ -528,16 +560,67 @@ export default {
         return json({ success: true });
       }
 
-      // 7. Media Upload Endpoint
+      // 7. Media Upload & Cloudflare D1 Storage
       if (url.pathname === '/api/upload' && request.method === 'POST') {
         const body: any = await request.json();
+        const rawData: string = body.data || body.dataUrl || body.url || '';
+        
+        let mimeType = body.mimeType || 'image/jpeg';
+        let base64Content = rawData;
+        const dataUrlMatch = rawData.match(/^data:([^;]+);base64,(.*)$/);
+        if (dataUrlMatch) {
+          mimeType = dataUrlMatch[1];
+          base64Content = dataUrlMatch[2];
+        }
+
+        const id = 'media_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+        const approxSize = Math.round((base64Content.length * 3) / 4);
+
+        await env.DB.prepare(`
+          INSERT INTO media (id, mimeType, data, size, createdAt)
+          VALUES (?, ?, ?, ?, ?)
+        `).bind(id, mimeType, base64Content, approxSize, Date.now()).run();
+
+        const mediaUrl = `/api/media/${id}`;
         return json({
           success: true,
-          url: body.dataUrl || body.url,
-          name: body.name || 'media',
-          size: body.size || '10 KB',
-          type: body.type || 'image',
+          id,
+          url: mediaUrl,
+          name: body.name || `${id}.${mimeType.split('/')[1] || 'jpg'}`,
+          size: `${Math.round(approxSize / 1024)} KB`,
+          type: mimeType.startsWith('image/') ? 'image' : 'file',
+          mimeType,
         });
+      }
+
+      // 8. High-Speed Binary Media Serving with 1-Year Edge Caching
+      const mediaMatch = url.pathname.match(/^\/api\/media\/([^/]+)$/);
+      if (mediaMatch && request.method === 'GET') {
+        const mediaId = mediaMatch[1];
+        const row: any = await env.DB.prepare('SELECT mimeType, data FROM media WHERE id = ?').bind(mediaId).first();
+        if (!row || !row.data) {
+          return new Response('Media not found', { status: 404, headers: corsHeaders });
+        }
+
+        try {
+          const binaryString = atob(row.data);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          return new Response(bytes.buffer, {
+            status: 200,
+            headers: {
+              'Content-Type': row.mimeType || 'image/jpeg',
+              'Cache-Control': 'public, max-age=31536000, immutable',
+              'Access-Control-Allow-Origin': '*',
+            },
+          });
+        } catch {
+          return new Response('Corrupt media format', { status: 500, headers: corsHeaders });
+        }
       }
 
       return json({ error: 'Endpoint not found' }, 404);

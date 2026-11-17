@@ -74,12 +74,9 @@ export const PostComposer: React.FC<PostComposerProps> = ({
 
       const contentToPublish = content.trim();
 
-      // Instant 0ms UI reset
+      // Clear input fields immediately for responsive feel
       setContent('');
       removeSelectedFile();
-      setUploadProgress(null);
-      setIsSubmitting(false);
-      isPublishingRef.current = false;
 
       // Add to feed & sync instantly
       await createPost({

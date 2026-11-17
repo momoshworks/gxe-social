@@ -1,33 +1,211 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   GXE SOCIAL // LIQUID GLASS + SOFTWARE PORTFOLIO LINEUP CARD AESTHETICS
+   ============================================================================ */
+
+:root {
+  --bg-primary: #0B0F19;
+  --bg-surface: rgba(22, 31, 51, 0.65);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --text-primary: #F8FAFC;
+  --text-muted: #94A3B8;
+  --accent-cyan: #70D6FF;
+  --accent-pink: #FF70A6;
+  --accent-purple: #8B5CF6;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-highlight: rgba(255, 255, 255, 0.35);
+  --glass-blur: 20px;
+  --radius-card: 24px;
+  --radius-pill: 9999px;
+
+  /* iPhone Tactile Rim Reflections */
+  --ios-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+  --ios-glass-border: rgba(255, 255, 255, 0.16);
+  --ios-glass-rim: inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.4), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.4);
+  --ios-glass-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
 @layer base {
   * {
-    border-color: #2f3336;
-  }
-  
-  body {
-    background-color: #000000;
-    color: #e7e9ea;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cairo", "Tajawal", Helvetica, Arial, sans-serif;
-    overflow-y: scroll;
-    direction: rtl; /* Default Arabic RTL, switchable */
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
-  /* Custom scrollbar for sleek Twitter dark aesthetic */
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cairo", "Tajawal", "Inter", sans-serif;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    direction: rtl;
+    min-height: 100vh;
+  }
+
+  /* Sleek Liquid Glass Scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #000000;
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2f3336;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #536471;
+    background: rgba(112, 214, 255, 0.4);
   }
+}
+
+/* Ambient Aurora Chromatic Mesh Background */
+.aurora-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(112, 214, 255, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(255, 112, 166, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 50% 75%, rgba(139, 92, 246, 0.14) 0%, transparent 55%),
+    radial-gradient(circle at 80% 85%, rgba(255, 214, 112, 0.10) 0%, transparent 50%);
+  filter: blur(70px);
+}
+
+/* Liquid Glass Panels */
+.glass-panel {
+  background: var(--ios-glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--ios-glass-border);
+  border-top: 1.5px solid var(--border-highlight);
+  border-radius: var(--radius-card);
+  box-shadow: var(--ios-glass-rim), var(--ios-glass-shadow);
+}
+
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 18px;
+}
+
+/* Tactile Liquid Glass Buttons */
+.glass-btn-primary {
+  background: linear-gradient(135deg, rgba(112, 214, 255, 0.88), rgba(255, 112, 166, 0.85));
+  color: #07090E;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-top: 1.5px solid #ffffff;
+  box-shadow: 0 8px 24px -4px rgba(112, 214, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.glass-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -4px rgba(112, 214, 255, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  filter: brightness(1.05);
+}
+.glass-btn-primary:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.glass-btn-secondary {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
+  color: #F8FAFC;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.glass-btn-secondary:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+  transform: translateY(-2px);
+  border-color: rgba(112, 214, 255, 0.5);
+  box-shadow: 0 10px 24px rgba(112, 214, 255, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+.glass-btn-secondary:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Portfolio Lineup Card (Exact Design from Building A Software Portfolio Website) */
+.lineup-card {
+  position: relative;
+  background: var(--ios-glass-bg);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--ios-glass-border);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-card);
+  box-shadow: var(--ios-glass-rim), var(--ios-glass-shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.lineup-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(112, 214, 255, 0.6);
+  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.7), 0 0 24px rgba(112, 214, 255, 0.25), var(--ios-glass-rim);
+}
+
+.card-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #70D6FF, #FF70A6, #8B5CF6);
+  opacity: 0.85;
+}
+
+.card-top-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.card-num-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(112, 214, 255, 0.15);
+  color: #70D6FF;
+  border: 1px solid rgba(112, 214, 255, 0.35);
+}
+
+/* Chat Message Bubbles */
+.chat-bubble-outgoing {
+  background: linear-gradient(135deg, rgba(112, 214, 255, 0.24) 0%, rgba(112, 214, 255, 0.12) 100%);
+  border: 1px solid rgba(112, 214, 255, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-radius: 20px 20px 4px 20px;
+  color: #FFFFFF;
+}
+
+.chat-bubble-incoming {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-radius: 20px 20px 20px 4px;
+  color: #F1F5F9;
 }
 
 /* Animations */
@@ -37,15 +215,6 @@
   100% { transform: scale(1); }
 }
 
-@keyframes pop-countdown {
-  0% { width: 100%; }
-  100% { width: 0%; }
-}
-
 .animate-heart {
   animation: heart-burst 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.animate-pop-progress {
-  animation: pop-countdown 4.5s linear forwards;
 }
