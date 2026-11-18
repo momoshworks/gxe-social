@@ -34,18 +34,18 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
   }, [toast.id, onDismiss]);
 
   const icons = {
-    success: <CheckCircle2 className="w-5 h-5 text-[#00ba7c]" />,
-    error: <AlertCircle className="w-5 h-5 text-[#f4212e]" />,
-    info: <Info className="w-5 h-5 text-[#1d9bf0]" />,
+    success: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
+    error: <AlertCircle className="w-5 h-5 text-rose-400" />,
+    info: <Info className="w-5 h-5 text-blue-400" />,
   };
 
   return (
-    <div className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-full bg-[#16181c] border border-[#2f3336] text-[#e7e9ea] shadow-2xl backdrop-blur-md animate-fade-in text-sm font-medium">
+    <div className="pointer-events-auto flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#08090C]/90 border border-white/15 text-white shadow-2xl backdrop-blur-xl animate-fade-in text-xs sm:text-sm font-medium">
       {icons[toast.type || 'info']}
       <span>{toast.text}</span>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="text-[#71767b] hover:text-[#e7e9ea] transition-colors p-1"
+        className="text-slate-400 hover:text-white transition-colors p-1"
       >
         <X className="w-4 h-4" />
       </button>

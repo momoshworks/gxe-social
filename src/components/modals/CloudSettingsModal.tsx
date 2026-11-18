@@ -48,23 +48,25 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
       <div
-        className="w-full max-w-xl bg-[#000000] border border-[#2f3336] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-xl glass-panel shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="card-accent-bar" />
+
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#2f3336] bg-[#16181c]/50">
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-[#f6821f]/10 text-[#f6821f] border border-[#f6821f]/20">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
               <Cloud className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-lg text-[#e7e9ea]">سحابة Cloudflare D1 العالمية</h2>
-              <p className="text-xs text-[#71767b]">قاعدة البيانات والـ API السحابي لتطبيق GXE</p>
+              <h2 className="font-bold text-lg text-white">سحابة Cloudflare D1 العالمية</h2>
+              <p className="text-xs text-slate-400">قاعدة البيانات والـ API السحابي لتطبيق GXE</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-[#71767b] hover:text-white transition-colors"
+            className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -107,7 +109,7 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
             <button
               onClick={testPing}
               disabled={testing}
-              className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-xs text-white font-medium flex items-center gap-1.5 transition-all"
+              className="glass-btn-secondary px-3 py-1.5 text-xs text-white font-medium flex items-center gap-1.5 transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} />
               <span>{latency !== null ? `${latency} ms` : 'قياس السرعة'}</span>
@@ -116,36 +118,36 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
 
           {/* Infrastructure Details */}
           <div className="space-y-3">
-            <h3 className="font-bold text-[#e7e9ea] text-xs flex items-center gap-2">
-              <Server className="w-4 h-4 text-[#f6821f]" />
+            <h3 className="font-bold text-white text-xs flex items-center gap-2">
+              <Server className="w-4 h-4 text-amber-400" />
               بيانات البنية التحتية السحابية:
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-[#16181c] border border-[#2f3336]">
-                <div className="text-[11px] text-[#71767b]">مزود السحابة</div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="text-[11px] text-slate-400">مزود السحابة</div>
                 <div className="font-bold text-white mt-1 flex items-center gap-1.5">
-                  <span className="text-[#f6821f]">Cloudflare Workers + D1</span>
+                  <span className="text-amber-400">Cloudflare Workers + D1</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#16181c] border border-[#2f3336]">
-                <div className="text-[11px] text-[#71767b]">اسم قاعدة البيانات</div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="text-[11px] text-slate-400">اسم قاعدة البيانات</div>
                 <div className="font-bold text-white mt-1 flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5 text-blue-400" />
                   <span>gxe-db (WEUR Paris)</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[#16181c] border border-[#2f3336] sm:col-span-2">
-                <div className="text-[11px] text-[#71767b]">رابط نقطة الـ API السحابية</div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 sm:col-span-2">
+                <div className="text-[11px] text-slate-400">رابط نقطة الـ API السحابية</div>
                 <div className="font-mono text-xs text-emerald-400 mt-1 break-all flex items-center justify-between">
                   <span>{CLOUDFLARE_WORKER_URL}</span>
                   <a
                     href={`${CLOUDFLARE_WORKER_URL}/api/status`}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-1 text-[#71767b] hover:text-white"
+                    className="p-1 text-slate-400 hover:text-white"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
@@ -155,12 +157,12 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
           </div>
 
           {/* Speed & Optimization Metrics */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-[#16181c] to-[#0a0a0a] border border-[#2f3336] space-y-2.5">
-            <h4 className="font-bold text-xs text-[#e7e9ea] flex items-center gap-2">
-              <Zap className="w-4 h-4 text-yellow-400" />
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-2.5">
+            <h4 className="font-bold text-xs text-white flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-400" />
               سرعة الاستجابة الفائقة (0ms Optimistic UI)
             </h4>
-            <ul className="text-xs text-[#71767b] space-y-1.5 leading-relaxed">
+            <ul className="text-xs text-slate-300 space-y-1.5 leading-relaxed">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>إضافة الهري (المنشورات) وحذفها يظهران فوراً في 0ms على الشاشة.</span>
@@ -178,10 +180,10 @@ export const CloudSettingsModal: React.FC<CloudSettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-[#2f3336] bg-[#16181c]/50 flex justify-end">
+        <div className="p-4 border-t border-white/10 bg-white/[0.02] flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-full bg-white text-black font-bold text-xs hover:bg-gray-200 transition-colors"
+            className="glass-btn-primary px-5 py-2 text-xs"
           >
             إغلاق
           </button>

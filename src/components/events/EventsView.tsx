@@ -65,7 +65,7 @@ export const EventsView: React.FC<EventsViewProps> = ({
             x: rect.left / window.innerWidth,
             y: rect.top / window.innerHeight,
           },
-          colors: ['#70D6FF', '#FF70A6', '#FFD670'],
+          colors: ['#3B82F6', '#60A5FA', '#10B981'],
           ticks: 100,
         });
       } catch {}
@@ -110,9 +110,9 @@ export const EventsView: React.FC<EventsViewProps> = ({
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
             <span>ساحة الأحداث والمشاريع</span>
-            <Zap className="w-6 h-6 text-[#70D6FF]" />
+            <Zap className="w-6 h-6 text-blue-400" />
           </h1>
-          <p className="text-sm text-gray-300 leading-relaxed max-w-xl">
+          <p className="text-sm text-slate-300 leading-relaxed max-w-xl">
             منصة استعراض المشاريع البرمجية المبتكرة، التحديثات التقنية الحية، والنقاشات المباشرة.
           </p>
         </div>
@@ -134,8 +134,8 @@ export const EventsView: React.FC<EventsViewProps> = ({
             onClick={() => setActiveCategory(cat.id)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               activeCategory === cat.id
-                ? 'glass-btn-primary text-[#07090E]'
-                : 'glass-btn-secondary text-gray-300 hover:text-white'
+                ? 'glass-btn-primary'
+                : 'glass-btn-secondary text-slate-300 hover:text-white'
             }`}
           >
             {cat.label}
@@ -163,11 +163,11 @@ export const EventsView: React.FC<EventsViewProps> = ({
                 <div className="card-top-strip">
                   <div className="flex items-center gap-2.5">
                     <span className="card-num-badge">#{indexStr}</span>
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300">
                       حدث تقني
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-gray-400">
+                  <span className="text-xs font-mono text-slate-400">
                     {formatTimeAgo(post.createdAt)}
                   </span>
                 </div>
@@ -181,19 +181,19 @@ export const EventsView: React.FC<EventsViewProps> = ({
                         <img
                           src={post.author.avatar}
                           alt={post.author.name}
-                          className="w-11 h-11 rounded-2xl object-cover border border-white/20 shadow-md group-hover:border-[#70D6FF]/60 transition-colors"
+                          className="w-11 h-11 rounded-2xl object-cover border border-white/20 shadow-md group-hover:border-blue-400/60 transition-colors"
                         />
                         {post.author.verified && (
-                          <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#70D6FF] text-[#0B0F19] flex items-center justify-center text-[10px] font-black border border-[#0B0F19]">
+                          <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-black border border-[#08090C]">
                             ✓
                           </span>
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-base font-bold text-white group-hover:text-[#70D6FF] transition-colors">
+                        <span className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
                           {post.author.name}
                         </span>
-                        <span className="text-xs font-mono text-gray-400" dir="ltr">
+                        <span className="text-xs font-mono text-slate-400" dir="ltr">
                           @{post.author.username}
                         </span>
                       </div>
@@ -203,7 +203,7 @@ export const EventsView: React.FC<EventsViewProps> = ({
                       <button
                         onClick={() => handleDelete(post.id)}
                         disabled={deletingId === post.id}
-                        className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="p-2 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                         title="حذف الحدث"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -212,7 +212,7 @@ export const EventsView: React.FC<EventsViewProps> = ({
                   </div>
 
                   {/* Event Text Content */}
-                  <p className="text-sm sm:text-base text-gray-200 leading-relaxed whitespace-pre-wrap select-text">
+                  <p className="text-sm sm:text-base text-slate-200 leading-relaxed whitespace-pre-wrap select-text">
                     {post.content}
                   </p>
 
@@ -230,7 +230,7 @@ export const EventsView: React.FC<EventsViewProps> = ({
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/media:opacity-100 transition-opacity flex items-end p-3">
                         <span className="text-xs font-medium text-white flex items-center gap-1.5">
-                          <ExternalLink className="w-3.5 h-3.5 text-[#70D6FF]" />
+                          <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
                           <span>عرض الصورة بالحجم الكامل</span>
                         </span>
                       </div>
@@ -245,8 +245,8 @@ export const EventsView: React.FC<EventsViewProps> = ({
                         onClick={(e) => handleLike(e, post)}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
                           isLiked
-                            ? 'bg-[#FF70A6]/20 text-[#FF70A6] border border-[#FF70A6]/40 shadow-sm'
-                            : 'glass-btn-secondary text-gray-300 hover:text-white'
+                            ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-sm'
+                            : 'glass-btn-secondary text-slate-300 hover:text-white'
                         }`}
                       >
                         <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
@@ -256,9 +256,9 @@ export const EventsView: React.FC<EventsViewProps> = ({
                       {/* Comments / Hary Button */}
                       <button
                         onClick={() => onOpenReply(post)}
-                        className="glass-btn-secondary px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 text-gray-300 hover:text-white"
+                        className="glass-btn-secondary px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 text-slate-300 hover:text-white"
                       >
-                        <MessageCircle className="w-3.5 h-3.5 text-[#70D6FF]" />
+                        <MessageCircle className="w-3.5 h-3.5 text-blue-400" />
                         <span>{post.commentsCount || 0} هاري</span>
                       </button>
                     </div>
@@ -266,7 +266,7 @@ export const EventsView: React.FC<EventsViewProps> = ({
                     {/* Share Button */}
                     <button
                       onClick={() => handleShare(post)}
-                      className="glass-btn-secondary p-2 rounded-full text-gray-300 hover:text-white"
+                      className="glass-btn-secondary p-2 rounded-full text-slate-300 hover:text-white"
                       title="مشاركة الحدث"
                     >
                       <Share2 className="w-3.5 h-3.5" />
@@ -279,12 +279,12 @@ export const EventsView: React.FC<EventsViewProps> = ({
         ) : (
           /* Clean Empty State (Zero Fake Posts) */
           <div className="glass-panel p-10 sm:p-14 text-center flex flex-col items-center justify-center gap-4 my-4">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#70D6FF]/20 to-[#FF70A6]/20 border border-white/20 flex items-center justify-center text-[#70D6FF] shadow-lg shadow-[#70D6FF]/10">
+            <div className="w-16 h-16 rounded-3xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/10">
               <Zap className="w-8 h-8 stroke-[2.2]" />
             </div>
             <div className="space-y-1">
               <h3 className="text-xl font-bold text-white">لا توجد أحداث أو مشاريع منشورة بعد</h3>
-              <p className="text-xs sm:text-sm text-gray-400 max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
                 كن أول من يطلق حدثاً تقنياً، مشروعاً برمجياً، أو فكرة جديدة في ساحة الأحداث! 🚀
               </p>
             </div>

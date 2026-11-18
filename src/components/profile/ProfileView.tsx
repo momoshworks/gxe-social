@@ -57,11 +57,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <div className="card-accent-bar" />
 
         {/* Cover Canvas with Aurora Gradient */}
-        <div className="h-40 sm:h-52 bg-gradient-to-r from-[#70D6FF]/25 via-[#8B5CF6]/20 to-[#FF70A6]/25 relative overflow-hidden">
+        <div className="h-40 sm:h-52 bg-gradient-to-r from-blue-600/20 via-slate-800/40 to-indigo-600/15 relative overflow-hidden">
           {currentUser.coverUrl && (
             <img src={currentUser.coverUrl} alt="Cover" className="w-full h-full object-cover" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08090C]/80 to-transparent" />
         </div>
 
         {/* Profile Info Header */}
@@ -72,10 +72,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 border-[#0B0F19] shadow-2xl bg-[#0B0F19]"
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 border-[#08090C] shadow-2xl bg-[#08090C]"
               />
               {currentUser.verified && (
-                <span className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-[#70D6FF] text-[#0B0F19] flex items-center justify-center text-sm font-black border-2 border-[#0B0F19]">
+                <span className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-black border-2 border-[#08090C]">
                   ✓
                 </span>
               )}
@@ -108,17 +108,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <h1 className="text-2xl font-black text-white">{currentUser.name}</h1>
                 <span className="card-num-badge">PROFILE</span>
               </div>
-              <p className="text-xs font-mono text-gray-400 mt-0.5" dir="ltr">
+              <p className="text-xs font-mono text-slate-400 mt-0.5" dir="ltr">
                 @{currentUser.username}
               </p>
             </div>
 
-            <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap max-w-2xl">
+            <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap max-w-2xl">
               {currentUser.bio || 'لا توجد نبذة تعريفية بعد.'}
             </p>
 
             {/* Stats Row */}
-            <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-white/10 text-xs text-gray-400">
+            <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-white/10 text-xs text-slate-400">
               <button
                 onClick={() => openFollowModal('followers')}
                 className="hover:text-white transition-colors cursor-pointer"
@@ -140,7 +140,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </button>
 
               <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
                 <span>انضم في {joinDate}</span>
               </div>
             </div>
@@ -153,8 +153,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={() => setActiveTab('events')}
             className={`py-3 px-4 text-xs font-bold transition-colors border-b-2 ${
               activeTab === 'events'
-                ? 'border-[#70D6FF] text-[#70D6FF]'
-                : 'border-transparent text-gray-400 hover:text-white'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
             الأحداث المنشورة ({myEvents.length})
@@ -164,8 +164,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={() => setActiveTab('media')}
             className={`py-3 px-4 text-xs font-bold transition-colors border-b-2 ${
               activeTab === 'media'
-                ? 'border-[#70D6FF] text-[#70D6FF]'
-                : 'border-transparent text-gray-400 hover:text-white'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
             الوسائط والصور ({myMedia.length})
@@ -175,8 +175,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={() => setActiveTab('likes')}
             className={`py-3 px-4 text-xs font-bold transition-colors border-b-2 ${
               activeTab === 'likes'
-                ? 'border-[#70D6FF] text-[#70D6FF]'
-                : 'border-transparent text-gray-400 hover:text-white'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
             الأحداث المعجب بها ({myLiked.length})
@@ -190,12 +190,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           displayedEvents.map((event) => (
             <div key={event.id} className="lineup-card p-5 group">
               <div className="card-accent-bar" />
-              <div className="flex items-center justify-between mb-3 text-xs text-gray-400">
+              <div className="flex items-center justify-between mb-3 text-xs text-slate-400">
                 <span className="card-num-badge">EVENT</span>
                 <span>{new Date(event.createdAt).toLocaleDateString('ar-EG')}</span>
               </div>
 
-              <p className="text-sm text-gray-200 leading-relaxed mb-3 whitespace-pre-wrap">
+              <p className="text-sm text-slate-200 leading-relaxed mb-3 whitespace-pre-wrap">
                 {event.content}
               </p>
 
@@ -208,12 +208,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </div>
               )}
 
-              <div className="flex items-center gap-4 pt-2 border-t border-white/10 text-xs text-gray-400">
-                <span className="flex items-center gap-1 text-[#FF70A6]">
+              <div className="flex items-center gap-4 pt-2 border-t border-white/10 text-xs text-slate-400">
+                <span className="flex items-center gap-1 text-rose-400">
                   <Heart className="w-3.5 h-3.5 fill-current" />
                   <span>{event.likes || 0}</span>
                 </span>
-                <span className="flex items-center gap-1 text-[#70D6FF]">
+                <span className="flex items-center gap-1 text-blue-400">
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>{event.commentsCount || 0} هاري</span>
                 </span>

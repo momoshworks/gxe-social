@@ -93,7 +93,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#70D6FF]/15 border border-[#70D6FF]/30 flex items-center justify-center text-[#70D6FF]">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <Zap className="w-4 h-4" />
             </div>
             <h2 className="font-bold text-base text-white">إطلاق حدث أو مشروع جديد</h2>
@@ -127,7 +127,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             onChange={(e) => setContent(e.target.value)}
             placeholder="اكتب تفاصيل الحدث، التحديث التقني، أو رابط المشروع..."
             rows={4}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl p-3.5 text-sm text-white placeholder-gray-400 outline-none focus:border-[#70D6FF]/50 transition-colors leading-relaxed resize-none"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl p-3.5 text-sm text-white placeholder-gray-400 outline-none focus:border-blue-500/50 transition-colors leading-relaxed resize-none"
             autoFocus
           />
 
@@ -160,7 +160,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 onClick={() => fileInputRef.current?.click()}
                 className="glass-btn-secondary px-3 py-1.5 text-xs flex items-center gap-1.5 text-gray-300 hover:text-white"
               >
-                <ImageIcon className="w-3.5 h-3.5 text-[#70D6FF]" />
+                <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
                 <span>إرفاق صورة / لقطة شاشة</span>
               </button>
             </div>

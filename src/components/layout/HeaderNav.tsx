@@ -37,24 +37,24 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           className="flex items-center gap-3 cursor-pointer group select-none shrink-0"
         >
           <div className="relative">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#70D6FF]/20 to-[#FF70A6]/20 border border-white/20 p-1.5 shadow-lg shadow-[#70D6FF]/10 group-hover:scale-105 transition-transform flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-white/[0.06] border border-white/15 p-1.5 shadow-md shadow-black/40 group-hover:scale-105 group-hover:border-white/30 transition-all flex items-center justify-center">
               <img src={logoImg} alt="GXE" className="w-full h-full object-contain drop-shadow" />
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00ba7c] rounded-full border-2 border-[#0B0F19] animate-pulse" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#08090C] animate-pulse" />
           </div>
           <div className="hidden sm:flex flex-col leading-tight">
             <div className="flex items-center gap-1.5">
               <span className="text-lg font-black tracking-wider text-white">GXE</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-[#70D6FF]/15 text-[#70D6FF] border border-[#70D6FF]/30 font-bold">
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold">
                 HUB
               </span>
             </div>
-            <span className="text-[11px] text-gray-400">منصة التواصل والأحداث</span>
+            <span className="text-[11px] text-slate-400">منصة التواصل والأحداث</span>
           </div>
         </div>
 
         {/* Center: Tactile Liquid Glass Navigation Switcher */}
-        <nav className="flex items-center gap-1 sm:gap-2 p-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+        <nav className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -62,10 +62,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                className={`relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
                   isActive
-                    ? 'glass-btn-primary shadow-lg shadow-[#70D6FF]/20 text-[#07090E]'
-                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    ? 'glass-btn-primary'
+                    : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                 }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
@@ -77,7 +77,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   <span className="md:hidden">أحداث</span>
                 )}
                 {tab.badge && (
-                  <span className="w-4 h-4 rounded-full bg-[#FF70A6] text-white text-[10px] flex items-center justify-center font-bold">
+                  <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold">
                     {tab.badge}
                   </span>
                 )}
@@ -92,13 +92,13 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           <button
             onClick={() => setActiveTab('notifications')}
             className={`relative p-2 rounded-full border border-white/10 hover:border-white/20 transition-colors ${
-              activeTab === 'notifications' ? 'bg-white/15 text-[#70D6FF]' : 'bg-white/5 text-gray-300'
+              activeTab === 'notifications' ? 'bg-white/15 text-blue-400' : 'bg-white/5 text-slate-300'
             }`}
             title="الإشعارات"
           >
             <Bell className="w-4 h-4" />
             {unreadNotifsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FF70A6] text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#0B0F19]">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#08090C]">
                 {unreadNotifsCount}
               </span>
             )}
@@ -133,7 +133,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               onClick={onOpenAuth}
               className="glass-btn-secondary px-3 py-1.5 text-xs flex items-center gap-1.5"
             >
-              <LogIn className="w-3.5 h-3.5 text-[#70D6FF]" />
+              <LogIn className="w-3.5 h-3.5 text-blue-400" />
               <span className="hidden sm:inline">دخول</span>
             </button>
           )}

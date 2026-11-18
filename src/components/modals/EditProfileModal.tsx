@@ -123,24 +123,26 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in select-none">
       <div
-        className="w-full max-w-lg bg-[#000000] border border-[#2f3336] rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]"
+        className="w-full max-w-lg glass-panel overflow-hidden shadow-2xl flex flex-col max-h-[92vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="card-accent-bar" />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2f3336] bg-[#000000] sticky top-0 z-10">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/[0.02] sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="p-1.5 text-[#71767b] hover:text-[#e7e9ea] hover:bg-[#181818] rounded-full transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="font-bold text-base text-[#e7e9ea]">تعديل الملف الشخصي</h2>
+            <h2 className="font-bold text-base text-white">تعديل الملف الشخصي</h2>
           </div>
           <button
             onClick={handleSave}
             disabled={!name.trim() || isSaving || isUploadingAvatar || isUploadingCover}
-            className="px-5 py-1.5 bg-white hover:bg-gray-200 text-black font-bold text-xs rounded-full disabled:opacity-50 transition-colors flex items-center gap-1.5"
+            className="glass-btn-primary px-5 py-2 text-xs flex items-center gap-1.5 disabled:opacity-40"
           >
             {isSaving ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
             <span>حفظ التعديلات</span>
@@ -150,7 +152,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSave} className="overflow-y-auto">
           {/* Cover Photo Upload Banner */}
-          <div className="relative h-36 bg-gradient-to-r from-[#1d9bf0]/40 via-[#00ba7c]/20 to-[#16181c] flex items-center justify-center group">
+          <div className="relative h-36 bg-gradient-to-r from-blue-600/20 via-slate-800/40 to-indigo-600/15 flex items-center justify-center group">
             {coverUrl && (
               <img src={coverUrl} alt="صورة الغلاف" className="w-full h-full object-cover" />
             )}
@@ -179,7 +181,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {/* Avatar Upload Preview (Overlapping cover) */}
             <div className="relative -mt-12 mb-2 w-fit">
               <div
-                className="relative group cursor-pointer w-24 h-24 rounded-full border-4 border-black bg-black overflow-hidden shadow-xl"
+                className="relative group cursor-pointer w-24 h-24 rounded-full border-4 border-[#08090C] bg-[#08090C] overflow-hidden shadow-xl"
                 onClick={() => avatarInputRef.current?.click()}
               >
                 <img
@@ -206,28 +208,28 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
             {/* Name Field */}
             <div>
-              <label className="block text-xs font-semibold text-[#71767b] mb-1">الاسم الكامل *</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">الاسم الكامل *</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={50}
                 required
-                className="w-full bg-[#16181c] border border-[#2f3336] rounded-xl px-4 py-2.5 text-sm text-[#e7e9ea] outline-none focus:border-[#1d9bf0]"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
               />
             </div>
 
             {/* Username Field */}
             <div>
-              <label className="block text-xs font-semibold text-[#71767b] mb-1">المعرّف (@username)</label>
-              <div className="flex items-center bg-[#16181c] border border-[#2f3336] rounded-xl px-4 py-2.5 focus-within:border-[#1d9bf0]">
-                <span className="text-[#71767b] text-sm ml-1">@</span>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">المعرّف (@username)</label>
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus-within:border-blue-500/50 transition-colors">
+                <span className="text-slate-400 text-sm ml-1">@</span>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   maxLength={30}
-                  className="w-full bg-transparent text-sm text-[#e7e9ea] outline-none"
+                  className="w-full bg-transparent text-sm text-white outline-none"
                   dir="ltr"
                 />
               </div>
@@ -235,16 +237,16 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
             {/* Bio Field */}
             <div>
-              <label className="block text-xs font-semibold text-[#71767b] mb-1">النبذة التعريفية (Bio)</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">النبذة التعريفية (Bio)</label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 maxLength={160}
                 rows={3}
                 placeholder="اكتب نبذة عنك، اهتماماتك أو مجالك..."
-                className="w-full bg-[#16181c] border border-[#2f3336] rounded-xl px-4 py-2.5 text-sm text-[#e7e9ea] placeholder-[#71767b] outline-none resize-none focus:border-[#1d9bf0]"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-400 outline-none resize-none focus:border-blue-500/50 transition-colors"
               />
-              <span className="text-[11px] text-[#71767b] text-left block mt-1">
+              <span className="text-[11px] text-slate-400 text-left block mt-1">
                 {160 - bio.length} حرف متبقي
               </span>
             </div>

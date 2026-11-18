@@ -115,15 +115,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in select-none">
       <div
-        className="w-full max-w-md bg-[#000000] border border-[#2f3336] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col"
+        className="w-full max-w-md glass-panel p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="card-accent-bar" />
+
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 left-5 p-2 rounded-full text-[#71767b] hover:text-[#e7e9ea] hover:bg-[#181818] transition-colors"
+          className="absolute top-5 left-5 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -131,23 +133,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mt-2">
           <img src={logoImg} alt="GXE Logo" className="w-14 h-14 object-contain mb-3 drop-shadow-md" />
-          <h2 className="text-2xl font-black text-[#e7e9ea] tracking-tight">
-            انضم إلى مجتمع <span className="text-[#1d9bf0]">GXE</span>
+          <h2 className="text-2xl font-black text-white tracking-tight">
+            انضم إلى مجتمع <span className="text-blue-400">GXE</span>
           </h2>
-          <p className="text-xs text-[#71767b] mt-1 max-w-xs leading-relaxed">
+          <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
             منصة التواصل الاجتماعي الحية — حسابك وبياناتك تُحفظ سحابياً وتتزامن تلقائياً بدون أي تدخل منك.
           </p>
         </div>
 
         {/* Cloud Notice / Link if not connected */}
         {!isConnected && (
-          <div className="mt-4 p-3 rounded-2xl bg-[#ff9900]/10 border border-[#ff9900]/30 text-xs text-[#ff9900] flex flex-col gap-1.5 text-center">
+          <div className="mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex flex-col gap-1.5 text-center">
             <span className="font-bold flex items-center justify-center gap-1">
               <Cloud className="w-4 h-4" />
-              <span>مشروعك السحابي: gxe-app</span>
+              <span>سحابة Cloudflare D1 العالمية</span>
             </span>
             <p className="text-[11px] opacity-90">
-              لتسجيل الدخول بـ Google وحفظ كل شيء على سحابة Google مباشرة، أدخل كود الربط السحابي:
+              لتسجيل الدخول وحفظ كل شيء على سحابة Cloudflare، راجع إعدادات السحابة:
             </p>
             {onOpenCloudSettings && (
               <button
@@ -155,7 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClose();
                   onOpenCloudSettings();
                 }}
-                className="mt-1 px-3 py-1.5 rounded-full bg-[#ff9900] text-black font-bold text-xs hover:bg-[#ff9900]/90 transition-colors self-center"
+                className="mt-1 px-3 py-1.5 rounded-full bg-amber-500 text-black font-bold text-xs hover:bg-amber-400 transition-colors self-center"
               >
                 ⚙️ إعدادات سحابة Cloudflare D1
               </button>
@@ -165,7 +167,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Error message */}
         {errorMsg && (
-          <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center leading-relaxed">
+          <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center leading-relaxed">
             {errorMsg}
           </div>
         )}
@@ -203,16 +205,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             type="button"
             onClick={handleContinueAsGuest}
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-[#16181c] hover:bg-[#202327] border border-[#2f3336] text-[#e7e9ea] font-medium text-xs transition-colors"
+            className="glass-btn-secondary w-full py-2.5 px-4 text-xs font-medium flex items-center justify-center gap-2"
           >
-            <UserCheck className="w-4 h-4 text-[#00ba7c]" />
+            <UserCheck className="w-4 h-4 text-emerald-400" />
             <span>المتابعة السريعة كضيف (تجربة كل الميزات الآن)</span>
           </button>
 
           <div className="flex items-center my-1">
-            <div className="flex-1 border-t border-[#2f3336]" />
-            <span className="px-3 text-xs text-[#71767b]">أو عبر البريد</span>
-            <div className="flex-1 border-t border-[#2f3336]" />
+            <div className="flex-1 border-t border-white/10" />
+            <span className="px-3 text-xs text-slate-400">أو عبر البريد</span>
+            <div className="flex-1 border-t border-white/10" />
           </div>
         </div>
 
@@ -220,46 +222,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <form onSubmit={handleEmailAuth} className="space-y-3">
           {isSignUp && (
             <div className="relative">
-              <UserIcon className="absolute right-3.5 top-3 w-4 h-4 text-[#71767b]" />
+              <UserIcon className="absolute right-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="الاسم الكامل"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required={isSignUp}
-                className="w-full bg-[#16181c] border border-[#2f3336] rounded-xl pr-10 pl-4 py-2.5 text-xs text-[#e7e9ea] placeholder-[#71767b] focus:border-[#1d9bf0] outline-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl pr-10 pl-4 py-2.5 text-xs text-white placeholder-slate-400 focus:border-blue-500/50 outline-none transition-colors"
               />
             </div>
           )}
 
           <div className="relative">
-            <Mail className="absolute right-3.5 top-3 w-4 h-4 text-[#71767b]" />
+            <Mail className="absolute right-3.5 top-3 w-4 h-4 text-slate-400" />
             <input
               type="email"
               placeholder="البريد الإلكتروني"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[#16181c] border border-[#2f3336] rounded-xl pr-10 pl-4 py-2.5 text-xs text-[#e7e9ea] placeholder-[#71767b] focus:border-[#1d9bf0] outline-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl pr-10 pl-4 py-2.5 text-xs text-white placeholder-slate-400 focus:border-blue-500/50 outline-none transition-colors"
             />
           </div>
 
           <div className="relative">
-            <Lock className="absolute right-3.5 top-3 w-4 h-4 text-[#71767b]" />
+            <Lock className="absolute right-3.5 top-3 w-4 h-4 text-slate-400" />
             <input
               type="password"
               placeholder="كلمة المرور"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-[#16181c] border border-[#2f3336] rounded-xl pr-10 pl-4 py-2.5 text-xs text-[#e7e9ea] placeholder-[#71767b] focus:border-[#1d9bf0] outline-none"
+              className="w-full bg-white/5 border border-white/10 rounded-xl pr-10 pl-4 py-2.5 text-xs text-white placeholder-slate-400 focus:border-blue-500/50 outline-none transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] active:scale-98 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+            className="glass-btn-primary w-full py-2.5 text-xs flex items-center justify-center gap-2"
           >
             {loading ? (
               <Sparkles className="w-4 h-4 animate-spin" />
@@ -277,7 +279,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-xs text-[#1d9bf0] hover:underline"
+            className="text-xs text-blue-400 hover:underline"
           >
             {isSignUp
               ? 'لديك حساب بالفعل؟ تسجيل الدخول'
@@ -286,13 +288,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Legal & Privacy Policy Link */}
-        <p className="mt-4 text-[10px] text-[#71767b] text-center leading-relaxed">
+        <p className="mt-4 text-[10px] text-slate-400 text-center leading-relaxed">
           بتسجيل الدخول أو استخدام المنصة، فإنك توافق على{' '}
           <a
             href="./privacy.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#00f0ff] hover:underline font-semibold"
+            className="text-blue-400 hover:underline font-semibold"
           >
             سياسة الخصوصية
           </a>{' '}

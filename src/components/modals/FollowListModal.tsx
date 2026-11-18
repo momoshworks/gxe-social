@@ -62,79 +62,81 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in select-none">
       <div
-        className="w-full max-w-lg bg-[#000000] border border-[#2f3336] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+        className="w-full max-w-lg glass-panel overflow-hidden shadow-2xl flex flex-col max-h-[85vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="card-accent-bar" />
+
         {/* Header */}
-        <div className="p-3.5 border-b border-[#2f3336] flex items-center justify-between bg-[#000000]/95 sticky top-0 z-10">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02] sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="p-1.5 text-[#71767b] hover:text-white rounded-full hover:bg-[#181818] transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             <div className="flex flex-col">
-              <h3 className="font-black text-base text-[#e7e9ea] flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#1d9bf0]" />
+              <h3 className="font-black text-base text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-400" />
                 <span>سجل المتابعين والمتابَعات</span>
               </h3>
-              <span className="text-xs text-[#71767b]">@{profileUser.username}</span>
+              <span className="text-xs text-slate-400" dir="ltr">@{profileUser.username}</span>
             </div>
           </div>
         </div>
 
         {/* Tabs: أتابعهم vs المتابعون */}
-        <div className="flex border-b border-[#2f3336] text-sm font-bold">
+        <div className="flex border-b border-white/10 text-sm font-bold bg-white/[0.01]">
           <button
             onClick={() => setActiveTab('following')}
-            className="flex-1 py-3 text-center relative hover:bg-[#16181c] transition-colors"
+            className="flex-1 py-3 text-center relative hover:bg-white/5 transition-colors"
           >
             <span
               className={
-                activeTab === 'following' ? 'text-[#1d9bf0]' : 'text-[#71767b]'
+                activeTab === 'following' ? 'text-blue-400' : 'text-slate-400'
               }
             >
               يتابع ({followingIds.length})
             </span>
             {activeTab === 'following' && (
-              <span className="absolute bottom-0 inset-x-0 h-1 bg-[#1d9bf0] rounded-full mx-8" />
+              <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full mx-8" />
             )}
           </button>
 
           <button
             onClick={() => setActiveTab('followers')}
-            className="flex-1 py-3 text-center relative hover:bg-[#16181c] transition-colors"
+            className="flex-1 py-3 text-center relative hover:bg-white/5 transition-colors"
           >
             <span
               className={
-                activeTab === 'followers' ? 'text-[#1d9bf0]' : 'text-[#71767b]'
+                activeTab === 'followers' ? 'text-blue-400' : 'text-slate-400'
               }
             >
               المتابعون ({followerIds.length})
             </span>
             {activeTab === 'followers' && (
-              <span className="absolute bottom-0 inset-x-0 h-1 bg-[#1d9bf0] rounded-full mx-8" />
+              <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-500 rounded-full mx-8" />
             )}
           </button>
         </div>
 
         {/* Search inside followers/following */}
-        <div className="p-3 border-b border-[#2f3336]/60">
+        <div className="p-3 border-b border-white/10">
           <div className="relative flex items-center">
-            <Search className="absolute right-3 w-4 h-4 text-[#71767b]" />
+            <Search className="absolute right-3.5 w-4 h-4 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="ابحث بالاسم أو المعرّف أو الإيميل..."
-              className="w-full bg-[#16181c] border border-[#2f3336] rounded-full py-1.5 pr-9 pl-3 text-xs text-[#e7e9ea] placeholder-[#71767b] outline-none focus:border-[#1d9bf0]"
+              className="w-full bg-white/5 border border-white/10 rounded-full py-2 pr-10 pl-4 text-xs text-white placeholder-slate-400 outline-none focus:border-blue-500/50 transition-colors"
             />
           </div>
         </div>
 
         {/* Users List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-[#2f3336]/40 p-2">
+        <div className="flex-1 overflow-y-auto divide-y divide-white/5 p-2">
           {filteredList.length > 0 ? (
             filteredList.map((user) => {
               const isSelf = user.id === currentUser.id;
@@ -143,33 +145,33 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
               return (
                 <div
                   key={user.id}
-                  className="p-3 hover:bg-[#16181c] rounded-xl transition-colors flex items-center justify-between gap-3"
+                  className="p-3 hover:bg-white/[0.03] rounded-xl transition-colors flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#2f3336]"
+                      className="w-11 h-11 rounded-full object-cover shrink-0 border border-white/20"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <span className="font-bold text-sm text-[#e7e9ea] truncate">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-sm text-white truncate">
                           {user.name}
                         </span>
                         {user.verified && (
-                          <span className="text-[#1d9bf0] text-xs font-bold">✓</span>
+                          <span className="text-blue-400 text-xs font-bold">✓</span>
                         )}
                         {isSelf && (
-                          <span className="bg-[#1d9bf0]/10 text-[#1d9bf0] text-[10px] px-2 py-0.5 rounded-full font-bold mr-1">
+                          <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold mr-1">
                             أنت
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-[#71767b] truncate" dir="ltr">
+                      <div className="text-xs text-slate-400 truncate font-mono" dir="ltr">
                         @{user.username}
                       </div>
                       {user.bio && (
-                        <p className="text-xs text-[#a4a9ae] truncate mt-0.5">
+                        <p className="text-xs text-slate-300 truncate mt-0.5">
                           {user.bio}
                         </p>
                       )}
@@ -185,7 +187,7 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
                             onClose();
                             onStartChat(user);
                           }}
-                          className="p-2 text-[#71767b] hover:text-[#1d9bf0] hover:bg-[#1d9bf0]/10 rounded-full transition-colors"
+                          className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors"
                           title="مراسلة خاصة"
                         >
                           <MessageCircle className="w-4 h-4" />
@@ -194,10 +196,10 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
 
                       <button
                         onClick={() => onToggleFollow(user)}
-                        className={`px-3.5 py-1.5 rounded-full font-bold text-xs transition-all flex items-center gap-1 ${
+                        className={`px-3.5 py-1.5 rounded-full font-semibold text-xs transition-all flex items-center gap-1 ${
                           isFollowedByMe
-                            ? 'bg-transparent border border-[#536471] text-[#e7e9ea] hover:border-red-600 hover:text-red-500 hover:bg-red-500/10'
-                            : 'bg-white hover:bg-gray-200 text-black'
+                            ? 'glass-btn-secondary text-slate-300 hover:border-rose-500/40 hover:text-rose-400 hover:bg-rose-500/10'
+                            : 'glass-btn-primary'
                         }`}
                       >
                         {isFollowedByMe ? (
@@ -218,14 +220,14 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
               );
             })
           ) : (
-            <div className="p-8 text-center text-xs text-[#71767b] flex flex-col items-center justify-center">
-              <Users className="w-10 h-10 text-[#2f3336] mb-2" />
-              <p className="font-semibold text-sm text-[#e7e9ea]">
+            <div className="p-8 text-center text-xs text-slate-400 flex flex-col items-center justify-center">
+              <Users className="w-10 h-10 text-slate-600 mb-2" />
+              <p className="font-semibold text-sm text-white">
                 {activeTab === 'following'
                   ? 'لا توجد متابعات حالياً'
                   : 'لا يوجد متابعون بعد'}
               </p>
-              <p className="text-xs mt-1 text-[#71767b]">
+              <p className="text-xs mt-1 text-slate-400">
                 {activeTab === 'following'
                   ? 'تصفح المستخدمين واضغط "متابعة" لمتابعة حساباتهم وتحديث سجلّك.'
                   : 'عندما يتابعك أعضاء المجتمع سيظهرون هنا في سجلّك.'}

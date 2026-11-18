@@ -49,26 +49,26 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
         <img
           src={currentPop.icon}
           alt="Avatar"
-          className="w-10 h-10 rounded-full object-cover border border-[#00f0ff]/40 shadow-md shadow-[#00f0ff]/20 shrink-0"
+          className="w-10 h-10 rounded-full object-cover border border-blue-500/40 shadow-md shadow-blue-500/20 shrink-0"
         />
       );
     }
     if (currentPop.title.includes('رسالة')) {
       return (
-        <div className="w-10 h-10 rounded-full bg-[#00ba7c]/20 border border-[#00ba7c]/40 flex items-center justify-center shrink-0">
-          <MessageCircle className="w-5 h-5 text-[#00ba7c]" />
+        <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+          <MessageCircle className="w-5 h-5 text-emerald-400" />
         </div>
       );
     }
     if (currentPop.title.includes('إعجاب')) {
       return (
-        <div className="w-10 h-10 rounded-full bg-[#f91880]/20 border border-[#f91880]/40 flex items-center justify-center shrink-0">
-          <Heart className="w-5 h-5 text-[#f91880] fill-current" />
+        <div className="w-10 h-10 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center shrink-0">
+          <Heart className="w-5 h-5 text-rose-400 fill-current" />
         </div>
       );
     }
     return (
-      <div className="w-10 h-10 rounded-full bg-[#00f0ff]/20 border border-[#00f0ff]/40 flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0">
         <img src={logoImg} alt="GXE" className="w-6 h-6 object-contain" />
       </div>
     );
@@ -83,10 +83,10 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
     >
       <div
         onClick={handleClick}
-        className="cursor-pointer bg-[#0c0d12]/95 backdrop-blur-xl border border-[#00f0ff]/30 hover:border-[#00f0ff]/60 rounded-2xl p-3 shadow-2xl shadow-black/80 flex items-center gap-3 relative overflow-hidden group select-none transition-all active:scale-98"
+        className="cursor-pointer bg-[#08090C]/90 backdrop-blur-xl border border-white/15 hover:border-blue-500/50 rounded-2xl p-3 shadow-2xl shadow-black/80 flex items-center gap-3 relative overflow-hidden group select-none transition-all active:scale-98"
       >
         {/* Animated Auto-dismiss countdown bar */}
-        <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[#00f0ff] via-[#00ba7c] to-[#00f0ff] animate-pop-progress" />
+        <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 animate-pop-progress" />
 
         {/* Sender / App Avatar */}
         {getPopIcon()}
@@ -94,13 +94,13 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
         {/* Text Content */}
         <div className="flex-1 min-w-0 text-right">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[10px] font-bold text-[#00f0ff] uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#00f0ff] animate-pulse" />
+            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-blue-400 animate-pulse" />
               <span>GXE نبض فوري</span>
             </span>
           </div>
-          <h4 className="font-bold text-sm text-[#ffffff] truncate">{currentPop.title}</h4>
-          <p className="text-xs text-[#a0a5ad] truncate leading-tight">{currentPop.body}</p>
+          <h4 className="font-bold text-sm text-white truncate">{currentPop.title}</h4>
+          <p className="text-xs text-slate-400 truncate leading-tight">{currentPop.body}</p>
         </div>
 
         {/* Dismiss Button */}
@@ -109,7 +109,7 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
             e.stopPropagation();
             setIsVisible(false);
           }}
-          className="p-1.5 text-[#71767b] hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0"
           title="إغلاق الإشعار"
         >
           <X className="w-4 h-4" />

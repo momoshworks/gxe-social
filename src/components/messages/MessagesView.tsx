@@ -178,25 +178,25 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
           <div className="p-4 border-b border-white/10 space-y-3 bg-white/[0.02]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#70D6FF]/15 border border-[#70D6FF]/30 flex items-center justify-center text-[#70D6FF]">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
                   <MessageCircle className="w-4 h-4" />
                 </div>
                 <h2 className="text-base font-bold text-white">المحادثات المباشرة</h2>
               </div>
-              <span className="text-xs font-mono text-gray-400">
+              <span className="text-xs font-mono text-slate-400">
                 {filteredUsers.length} أعضاء
               </span>
             </div>
 
             {/* Search Input */}
             <div className="relative flex items-center">
-              <Search className="absolute right-3.5 w-4 h-4 text-gray-400" />
+              <Search className="absolute right-3.5 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="بحث في الأعضاء والمحادثات..."
-                className="w-full bg-white/5 border border-white/10 rounded-full py-2 pr-10 pl-3 text-xs text-white placeholder-gray-400 outline-none focus:border-[#70D6FF]/50 transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-full py-2 pr-10 pl-3 text-xs text-white placeholder-slate-400 outline-none focus:border-blue-500/50 transition-colors"
               />
             </div>
           </div>
@@ -212,7 +212,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                     onClick={() => setSelectedUser(user)}
                     className={`p-3.5 flex items-center gap-3 cursor-pointer transition-all ${
                       isSelected
-                        ? 'bg-[#70D6FF]/15 border-r-2 border-[#70D6FF]'
+                        ? 'bg-blue-500/15 border-r-2 border-blue-500'
                         : 'hover:bg-white/5'
                     }`}
                   >
@@ -222,7 +222,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                         alt={user.name}
                         className="w-12 h-12 rounded-2xl object-cover border border-white/20 shadow"
                       />
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#00ba7c] rounded-full border-2 border-[#0B0F19]" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#08090C]" />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -231,14 +231,14 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                           {user.name}
                         </span>
                         {user.verified && (
-                          <span className="text-[#70D6FF] text-xs font-bold">✓</span>
+                          <span className="text-blue-400 text-xs font-bold">✓</span>
                         )}
                       </div>
-                      <div className="text-xs font-mono text-gray-400 truncate" dir="ltr">
+                      <div className="text-xs font-mono text-slate-400 truncate" dir="ltr">
                         @{user.username}
                       </div>
                       {user.bio && (
-                        <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
                           {user.bio}
                         </p>
                       )}
@@ -247,9 +247,9 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                 );
               })
             ) : (
-              <div className="p-8 text-center text-xs text-gray-400 space-y-2">
+              <div className="p-8 text-center text-xs text-slate-400 space-y-2">
                 <p>{q ? 'لا يوجد أعضاء يطابقون بحثك' : 'لا يوجد أعضاء آخرين مسجلين بعد.'}</p>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-slate-500">
                   جميع المحادثات مشفرة وتتم مزامنتها سحابياً بسرعة فائقة.
                 </p>
               </div>
@@ -273,7 +273,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                   {/* Mobile Back Button */}
                   <button
                     onClick={() => setSelectedUser(null)}
-                    className="md:hidden p-1.5 rounded-full hover:bg-white/10 text-gray-300"
+                    className="md:hidden p-1.5 rounded-full hover:bg-white/10 text-slate-300"
                     title="الرجوع للقائمة"
                   >
                     <ArrowRight className="w-5 h-5" />
@@ -285,7 +285,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                       alt={selectedUser.name}
                       className="w-10 h-10 rounded-2xl object-cover border border-white/20 shadow"
                     />
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#00ba7c] rounded-full border-2 border-[#0B0F19]" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#08090C]" />
                   </div>
 
                   <div className="flex flex-col">
@@ -294,18 +294,18 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                         {selectedUser.name}
                       </span>
                       {selectedUser.verified && (
-                        <span className="text-[10px] text-[#70D6FF] font-bold">✓</span>
+                        <span className="text-[10px] text-blue-400 font-bold">✓</span>
                       )}
                     </div>
-                    <span className="text-[11px] font-mono text-[#00ba7c] flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00ba7c] animate-pulse" />
+                    <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       <span>متصل الآن</span>
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300">
+                  <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
                     محادثة خاصة
                   </span>
                 </div>
@@ -351,12 +351,12 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                           {/* Message Metadata (Timestamp + Checkmark) */}
                           <div
                             className={`flex items-center gap-1 mt-1 text-[10px] ${
-                              isOutgoing ? 'justify-end text-white/70' : 'justify-start text-gray-400'
+                              isOutgoing ? 'justify-end text-white/80' : 'justify-start text-slate-400'
                             }`}
                           >
                             <span className="font-mono">{formatMessageTime(msg.createdAt)}</span>
                             {isOutgoing && (
-                              <CheckCheck className="w-3.5 h-3.5 text-[#70D6FF]" />
+                              <CheckCheck className="w-3.5 h-3.5 text-white/90" />
                             )}
                           </div>
                         </div>
@@ -364,14 +364,14 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                     );
                   })
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-400 gap-2">
-                    <div className="w-12 h-12 rounded-2xl bg-[#70D6FF]/10 border border-[#70D6FF]/20 flex items-center justify-center text-[#70D6FF]">
+                  <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 gap-2">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
                       <Sparkles className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-semibold text-white">
                       بداية المحادثة مع {selectedUser.name}
                     </p>
-                    <p className="text-xs text-gray-400 max-w-xs">
+                    <p className="text-xs text-slate-400 max-w-xs">
                       أرسل أول رسالة أو شارك صورة لبدء النقاش المشفر 💬
                     </p>
                   </div>
@@ -435,7 +435,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 rounded-full text-gray-400 hover:text-[#70D6FF] hover:bg-white/10 transition-colors"
+                  className="p-2.5 rounded-full text-slate-400 hover:text-blue-400 hover:bg-white/10 transition-colors"
                   title="إرفاق صورة"
                 >
                   <Paperclip className="w-4 h-4" />
@@ -445,7 +445,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowEmojiBar(!showEmojiBar)}
-                  className="p-2.5 rounded-full text-gray-400 hover:text-[#FF70A6] hover:bg-white/10 transition-colors"
+                  className="p-2.5 rounded-full text-slate-400 hover:text-amber-400 hover:bg-white/10 transition-colors"
                   title="رموز تعبيرية"
                 >
                   <Smile className="w-4 h-4" />
@@ -457,7 +457,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="اكتب رسالة مشفرة..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-full py-2.5 px-4 text-sm text-white placeholder-gray-400 outline-none focus:border-[#70D6FF]/50 transition-colors"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-full py-2.5 px-4 text-sm text-white placeholder-slate-400 outline-none focus:border-blue-500/50 transition-colors"
                 />
 
                 {/* Send Button */}
@@ -472,13 +472,13 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
             </>
           ) : (
             /* No Chat Selected Placeholder */
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center gap-4 text-gray-400">
-              <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#70D6FF]/20 to-[#FF70A6]/20 border border-white/20 flex items-center justify-center text-[#70D6FF]">
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center gap-4 text-slate-400">
+              <div className="w-16 h-16 rounded-3xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/10">
                 <MessageCircle className="w-8 h-8" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-white">مرحباً بك في محادثات GXE</h3>
-                <p className="text-xs text-gray-400 max-w-sm">
+                <p className="text-xs text-slate-400 max-w-sm">
                   اختر أحد أعضاء المجتمع من القائمة على اليمين لبدء محادثة مباشرة وسريعة.
                 </p>
               </div>

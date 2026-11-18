@@ -234,7 +234,7 @@ export const App: React.FC = () => {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-[#F8FAFC] flex flex-col relative selection:bg-[#70D6FF] selection:text-[#0B0F19]">
+    <div className="min-h-screen bg-[#08090C] text-[#F8FAFC] flex flex-col relative selection:bg-blue-600 selection:text-white">
       {/* Ambient Aurora Chromatic Mesh (Building A Software Portfolio Website style) */}
       <div className="aurora-mesh" />
 

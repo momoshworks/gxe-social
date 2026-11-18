@@ -71,7 +71,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
             </button>
             <h2 className="font-bold text-base text-white">الهاري على الحدث</h2>
           </div>
-          <span className="text-xs font-mono text-[#70D6FF] flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#70D6FF]/10 border border-[#70D6FF]/30">
+          <span className="text-xs font-mono text-blue-400 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30">
             <MessageCircle className="w-3.5 h-3.5" />
             <span>{comments.length} هاري</span>
           </span>
@@ -90,7 +90,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-white text-sm">{post.author.name}</span>
                 {post.author.verified && (
-                  <span className="text-[#70D6FF] text-xs font-bold">✓</span>
+                  <span className="text-blue-400 text-xs font-bold">✓</span>
                 )}
                 <span className="text-xs font-mono text-gray-400">@{post.author.username}</span>
               </div>
@@ -156,7 +156,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="اكتب هاري أو تعليق هنا..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-full py-2 px-4 text-sm text-white placeholder-gray-400 outline-none focus:border-[#70D6FF]/50 transition-colors"
+              className="flex-1 bg-white/5 border border-white/10 rounded-full py-2 px-4 text-sm text-white placeholder-gray-400 outline-none focus:border-blue-500/50 transition-colors"
               autoFocus
             />
             <button

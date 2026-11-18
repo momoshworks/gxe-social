@@ -1,34 +1,39 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   GXE SOCIAL // LIQUID GLASS + SOFTWARE PORTFOLIO LINEUP CARD AESTHETICS
+   GXE SOCIAL // EDITORIAL LIQUID GLASS + CRAFT SHOWCASE TECH AESTHETICS
    ============================================================================ */
 
 :root {
-  --bg-primary: #0B0F19;
-  --bg-surface: rgba(22, 31, 51, 0.65);
-  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-primary: #08090C;
+  --bg-surface: rgba(16, 18, 26, 0.75);
+  --bg-card: rgba(255, 255, 255, 0.04);
   --text-primary: #F8FAFC;
   --text-muted: #94A3B8;
-  --accent-cyan: #70D6FF;
-  --accent-pink: #FF70A6;
-  --accent-purple: #8B5CF6;
-  --border-color: rgba(255, 255, 255, 0.12);
-  --border-highlight: rgba(255, 255, 255, 0.35);
-  --glass-blur: 20px;
-  --radius-card: 24px;
+  --text-faint: #64748B;
+  
+  /* Refined Tech Palette (Apple Royal Blue + Ice Sky) */
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
+  --accent-light: #60A5FA;
+  --accent-glow: rgba(37, 99, 235, 0.35);
+
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-highlight: rgba(255, 255, 255, 0.28);
+  --glass-blur: 24px;
+  --radius-card: 20px;
   --radius-pill: 9999px;
 
   /* iPhone Tactile Rim Reflections */
-  --ios-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
-  --ios-glass-border: rgba(255, 255, 255, 0.16);
-  --ios-glass-rim: inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.4), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.4);
-  --ios-glass-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.3);
+  --ios-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%);
+  --ios-glass-border: rgba(255, 255, 255, 0.09);
+  --ios-glass-rim: inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
+  --ios-glass-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 @layer base {
   * {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   body {
@@ -41,7 +46,7 @@
     min-height: 100vh;
   }
 
-  /* Sleek Liquid Glass Scrollbar */
+  /* Sleek Minimalist Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -50,27 +55,26 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.14);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(112, 214, 255, 0.4);
+    background: rgba(255, 255, 255, 0.28);
   }
 }
 
-/* Ambient Aurora Chromatic Mesh Background */
+/* Subtle, Elegant Ambient Lighting (Not loud neon) */
 .aurora-mesh {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.85;
+  opacity: 0.4;
   background: 
-    radial-gradient(circle at 15% 15%, rgba(112, 214, 255, 0.18) 0%, transparent 45%),
-    radial-gradient(circle at 85% 20%, rgba(255, 112, 166, 0.16) 0%, transparent 45%),
-    radial-gradient(circle at 50% 75%, rgba(139, 92, 246, 0.14) 0%, transparent 55%),
-    radial-gradient(circle at 80% 85%, rgba(255, 214, 112, 0.10) 0%, transparent 50%);
-  filter: blur(70px);
+    radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.12) 0%, transparent 55%),
+    radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+  filter: blur(90px);
 }
 
 /* Liquid Glass Panels */
@@ -85,51 +89,58 @@
 }
 
 .glass-panel-subtle {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
 }
 
-/* Tactile Liquid Glass Buttons */
+/* Tactile iPhone Glass Primary Button (Crisp Apple Blue with top light reflection) */
 .glass-btn-primary {
-  background: linear-gradient(135deg, rgba(112, 214, 255, 0.88), rgba(255, 112, 166, 0.85));
-  color: #07090E;
-  font-weight: 700;
+  background: linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+  font-weight: 600;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-top: 1.5px solid #ffffff;
-  box-shadow: 0 8px 24px -4px rgba(112, 214, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8);
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 6px 20px -4px rgba(37, 99, 235, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .glass-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -4px rgba(112, 214, 255, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-  filter: brightness(1.05);
+  transform: translateY(-1.5px);
+  background: linear-gradient(180deg, #60A5FA 0%, #2563EB 100%);
+  box-shadow: 0 10px 26px -4px rgba(37, 99, 235, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.65);
 }
 .glass-btn-primary:active {
   transform: translateY(1px) scale(0.98);
 }
 
+/* Secondary Frosted Glass Button */
 .glass-btn-secondary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
-  color: #F8FAFC;
-  font-weight: 600;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  color: #E2E8F0;
+  font-weight: 500;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .glass-btn-secondary:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
-  transform: translateY(-2px);
-  border-color: rgba(112, 214, 255, 0.5);
-  box-shadow: 0 10px 24px rgba(112, 214, 255, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
+  transform: translateY(-1.5px);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
 }
 .glass-btn-secondary:active {
   transform: translateY(1px) scale(0.98);
@@ -142,7 +153,7 @@
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--ios-glass-border);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-card);
   box-shadow: var(--ios-glass-rim), var(--ios-glass-shadow);
   display: flex;
@@ -152,19 +163,27 @@
 }
 
 .lineup-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(112, 214, 255, 0.6);
-  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.7), 0 0 24px rgba(112, 214, 255, 0.25), var(--ios-glass-rim);
+  transform: translateY(-3px);
+  border-color: rgba(96, 165, 250, 0.4);
+  box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(37, 99, 235, 0.18), var(--ios-glass-rim);
 }
 
+/* Subtle Laser Accent Bar (expands smoothly on hover) */
 .card-accent-bar {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #70D6FF, #FF70A6, #8B5CF6);
-  opacity: 0.85;
+  height: 2px;
+  background: linear-gradient(90deg, #3B82F6, #60A5FA);
+  transform-origin: right;
+  transform: scaleX(0);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+
+.lineup-card:hover .card-accent-bar {
+  transform: scaleX(1);
 }
 
 .card-top-strip {
@@ -172,39 +191,39 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.85rem 1.4rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .card-num-badge {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
-  background: rgba(112, 214, 255, 0.15);
-  color: #70D6FF;
-  border: 1px solid rgba(112, 214, 255, 0.35);
+  background: rgba(59, 130, 246, 0.14);
+  color: #93C5FD;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-/* Chat Message Bubbles */
+/* Chat Message Bubbles (Refined Apple Glass Style) */
 .chat-bubble-outgoing {
-  background: linear-gradient(135deg, rgba(112, 214, 255, 0.24) 0%, rgba(112, 214, 255, 0.12) 100%);
-  border: 1px solid rgba(112, 214, 255, 0.4);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border-radius: 20px 20px 4px 20px;
+  background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-radius: 18px 18px 4px 18px;
   color: #FFFFFF;
 }
 
 .chat-bubble-incoming {
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.32);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border-radius: 20px 20px 20px 4px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-radius: 18px 18px 18px 4px;
   color: #F1F5F9;
 }
 

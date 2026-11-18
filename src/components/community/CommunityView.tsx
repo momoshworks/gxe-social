@@ -31,14 +31,14 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
             <span>أعضاء مجتمع GXE</span>
-            <Users className="w-6 h-6 text-[#70D6FF]" />
+            <Users className="w-6 h-6 text-blue-400" />
           </h1>
-          <p className="text-sm text-gray-300 leading-relaxed max-w-xl">
+          <p className="text-sm text-slate-300 leading-relaxed max-w-xl">
             تواصل مباشرة مع المطورين، التقنيين، والمشاركين في المنصة عبر محادثات خاصة مشفرة.
           </p>
         </div>
 
-        <span className="text-xs font-mono px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 shrink-0">
+        <span className="text-xs font-mono px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-300 shrink-0">
           {otherUsers.length} أعضاء مسجلين
         </span>
       </div>
@@ -62,9 +62,9 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-md group-hover:border-[#70D6FF]/60 transition-colors"
+                      className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-md group-hover:border-blue-400/60 transition-colors"
                     />
-                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#00ba7c] rounded-full border-2 border-[#0B0F19]" />
+                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#08090C]" />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -73,14 +73,14 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                         {user.name}
                       </h3>
                       {user.verified && (
-                        <span className="text-xs text-[#70D6FF] font-black">✓</span>
+                        <span className="text-xs text-blue-400 font-black">✓</span>
                       )}
                     </div>
-                    <span className="text-xs font-mono text-gray-400 block truncate" dir="ltr">
+                    <span className="text-xs font-mono text-slate-400 block truncate" dir="ltr">
                       @{user.username}
                     </span>
                     {user.bio && (
-                      <p className="text-xs text-gray-300 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">
                         {user.bio}
                       </p>
                     )}
@@ -88,7 +88,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 </div>
 
                 {/* Real Stats */}
-                <div className="flex items-center gap-4 py-2 border-y border-white/10 text-xs font-mono text-gray-400">
+                <div className="flex items-center gap-4 py-2 border-y border-white/10 text-xs font-mono text-slate-400">
                   <div>
                     <span className="font-bold text-white ml-1">
                       {user.followersCount || user.followers?.length || 0}
@@ -125,8 +125,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     }}
                     className={`px-3 py-2 rounded-full text-xs font-semibold border transition-all ${
                       isFollowing
-                        ? 'bg-white/10 text-gray-300 border-white/20'
-                        : 'glass-btn-secondary text-[#70D6FF] border-[#70D6FF]/40'
+                        ? 'bg-white/10 text-slate-300 border-white/20'
+                        : 'glass-btn-secondary text-blue-400 border-blue-500/30'
                     }`}
                   >
                     {isFollowing ? (
@@ -143,11 +143,11 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
       ) : (
         /* Empty State */
         <div className="glass-panel p-10 text-center flex flex-col items-center justify-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-[#70D6FF]/15 border border-[#70D6FF]/30 flex items-center justify-center text-[#70D6FF]">
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
             <Users className="w-7 h-7" />
           </div>
           <h3 className="text-lg font-bold text-white">أنت أول عضو متصل!</h3>
-          <p className="text-xs text-gray-400 max-w-sm">
+          <p className="text-xs text-slate-400 max-w-sm">
             بمجرد انضمام مستخدمين آخرين إلى منصة GXE، ستظهر بطاقاتهم هنا للتواصل المباشر.
           </p>
         </div>

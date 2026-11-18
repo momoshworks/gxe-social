@@ -42,15 +42,15 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   const getIcon = (type: AppNotification['type']) => {
     switch (type) {
       case 'like':
-        return <Heart className="w-4 h-4 text-[#FF70A6] fill-current" />;
+        return <Heart className="w-4 h-4 text-rose-400 fill-current" />;
       case 'comment':
-        return <MessageCircle className="w-4 h-4 text-[#70D6FF]" />;
+        return <MessageCircle className="w-4 h-4 text-blue-400" />;
       case 'repost':
-        return <Repeat className="w-4 h-4 text-[#00ba7c]" />;
+        return <Repeat className="w-4 h-4 text-emerald-400" />;
       case 'follow':
-        return <UserPlus className="w-4 h-4 text-[#70D6FF]" />;
+        return <UserPlus className="w-4 h-4 text-blue-400" />;
       case 'message':
-        return <MessageCircle className="w-4 h-4 text-[#00ba7c] fill-current" />;
+        return <MessageCircle className="w-4 h-4 text-emerald-400 fill-current" />;
     }
   };
 
@@ -83,7 +83,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
             <span>مركز التنبيهات</span>
-            <Bell className="w-6 h-6 text-[#70D6FF]" />
+            <Bell className="w-6 h-6 text-blue-400" />
           </h1>
           <p className="text-sm text-gray-300">
             تابع تفاعلات الأعضاء، الرسائل الجديدة، والتحديثات الفورية في حسابك.
@@ -94,7 +94,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           {browserPermission !== 'granted' && (
             <button
               onClick={handleEnablePush}
-              className="glass-btn-secondary px-3.5 py-1.5 text-xs flex items-center gap-1.5 text-[#70D6FF]"
+              className="glass-btn-secondary px-3.5 py-1.5 text-xs flex items-center gap-1.5 text-blue-400"
             >
               <BellRing className="w-3.5 h-3.5" />
               <span>تفعيل التنبيهات</span>
@@ -120,7 +120,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
             <div
               key={notif.id}
               className={`p-3.5 sm:p-4 rounded-2xl flex items-start gap-3.5 transition-colors ${
-                !notif.read ? 'bg-[#70D6FF]/10' : 'hover:bg-white/[0.03]'
+                !notif.read ? 'bg-blue-500/10 border border-blue-500/20' : 'hover:bg-white/[0.03]'
               }`}
             >
               <div className="relative shrink-0 mt-0.5">
@@ -129,7 +129,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
                   alt={notif.sender.name}
                   className="w-10 h-10 rounded-2xl object-cover border border-white/20"
                 />
-                <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#0B0F19] border border-white/20">
+                <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#08090C] border border-white/20">
                   {getIcon(notif.type)}
                 </span>
               </div>
