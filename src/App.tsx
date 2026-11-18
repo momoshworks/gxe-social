@@ -234,11 +234,11 @@ export const App: React.FC = () => {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#08090C] text-[#F8FAFC] flex flex-col relative selection:bg-blue-600 selection:text-white">
+    <div className="h-screen w-full bg-[#07080B] text-[#F8FAFC] flex flex-col relative overflow-hidden selection:bg-blue-600 selection:text-white">
       {/* Ambient Aurora Chromatic Mesh (Building A Software Portfolio Website style) */}
       <div className="aurora-mesh" />
 
-      {/* Dynamic Pop Notification */}
+      {/* Dynamic Pop Notification (Positioned bottom-left to never block header) */}
       <FloatingPopNotification
         onNavigate={(tab, data) => {
           if (tab) setActiveTab(tab);
@@ -260,7 +260,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full relative z-10 flex flex-col">
+      <div className={`flex-1 w-full relative z-10 flex flex-col ${activeTab === 'messages' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {/* 1. Chats View (WhatsApp Ergonomics + Liquid Glass) */}
         {activeTab === 'messages' && (
           <MessagesView

@@ -77,13 +77,13 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
   return (
     <aside
       aria-label="إشعار فوري"
-      className={`fixed top-3 inset-x-0 mx-auto z-50 max-w-md px-4 transition-all duration-300 ease-out ${
-        isVisible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-8 opacity-0 scale-95 pointer-events-none'
+      className={`fixed bottom-6 left-6 z-50 max-w-sm w-full transition-all duration-300 ease-out ${
+        isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95 pointer-events-none'
       }`}
     >
       <div
         onClick={handleClick}
-        className="cursor-pointer bg-[#08090C]/90 backdrop-blur-xl border border-white/15 hover:border-blue-500/50 rounded-2xl p-3 shadow-2xl shadow-black/80 flex items-center gap-3 relative overflow-hidden group select-none transition-all active:scale-98"
+        className="cursor-pointer bg-[#0A0C14]/95 backdrop-blur-2xl border border-white/15 hover:border-blue-500/50 rounded-2xl p-3.5 shadow-2xl shadow-black/90 flex items-center gap-3 relative overflow-hidden group select-none transition-all active:scale-98"
       >
         {/* Animated Auto-dismiss countdown bar */}
         <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 animate-pop-progress" />
