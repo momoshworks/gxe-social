@@ -25,11 +25,11 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
   useEffect(() => {
     if (!isVisible || !currentPop) return;
 
-    // Auto-dismiss after 4.5 seconds
+    // Auto-dismiss quickly (2.5 seconds)
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => setCurrentPop(null), 300); // wait for fade-out animation
-    }, 4500);
+      setTimeout(() => setCurrentPop(null), 200); // wait for fade-out animation
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [isVisible, currentPop]);

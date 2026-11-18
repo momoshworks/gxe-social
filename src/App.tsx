@@ -363,7 +363,6 @@ export const App: React.FC = () => {
           onClose={() => setIsAuthModalOpen(false)}
           onSuccess={(user) => {
             setCurrentUser(user);
-            addToast(`مرحباً بك يا ${user.name}! 🌟`, 'success');
           }}
           onNotify={addToast}
         />
