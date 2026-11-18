@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DownloadCloud, Sparkles, X, ExternalLink, ShieldCheck } from 'lucide-react';
-import { type AppUpdateInfo, triggerAppUpdate } from '../../services/updateService';
+import { type AppUpdateInfo, triggerAppUpdate, dismissUpdate } from '../../services/updateService';
 import { Capacitor } from '@capacitor/core';
 import logoImg from '../../assets/logo.png';
 
@@ -13,11 +13,18 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ update, onClose }) => 
   const [isUpdating, setIsUpdating] = useState(false);
   const isNative = Capacitor.isNativePlatform();
 
+  const handleDismiss = () => {
+    dismissUpdate(update.latestVersion);
+    onClose();
+  };
+
   const handleUpdate = () => {
     setIsUpdating(true);
+    triggerAppUpdate(update);
     setTimeout(() => {
-      triggerAppUpdate(update);
-    }, 400);
+      setIsUpdating(false);
+      onClose();
+    }, 1500);
   };
 
   return (
@@ -49,7 +56,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ update, onClose }) => 
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleDismiss}
             className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
             title="إغلاق"
           >

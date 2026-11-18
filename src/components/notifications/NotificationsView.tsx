@@ -120,14 +120,19 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
             <div
               key={notif.id}
               className={`p-3.5 sm:p-4 rounded-2xl flex items-start gap-3.5 transition-colors ${
-                !notif.read ? 'bg-blue-500/10 border border-blue-500/20' : 'hover:bg-white/[0.03]'
+                !notif.read ? 'bg-cyan-500/10 border border-cyan-500/20' : 'hover:bg-white/[0.03]'
               }`}
             >
               <div className="relative shrink-0 mt-0.5">
                 <img
-                  src={notif.sender.avatar}
-                  alt={notif.sender.name}
-                  className="w-10 h-10 rounded-2xl object-cover border border-white/20"
+                  src={
+                    notif.sender?.avatar ||
+                    `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
+                      notif.sender?.username || notif.sender?.id || 'user'
+                    )}`
+                  }
+                  alt={notif.sender?.name || 'عضو'}
+                  className="w-10 h-10 rounded-2xl object-cover border border-white/20 bg-slate-800"
                 />
                 <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#08090C] border border-white/20">
                   {getIcon(notif.type)}
@@ -137,8 +142,10 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
               <div className="flex-1 min-w-0 text-xs sm:text-sm">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-bold text-white">{notif.sender.name}</span>
-                    <span className="text-gray-400 font-mono text-xs">@{notif.sender.username}</span>
+                    <span className="font-bold text-white">{notif.sender?.name || 'عضو في GXE'}</span>
+                    <span className="text-gray-400 font-mono text-xs">
+                      @{notif.sender?.username || 'user'}
+                    </span>
                     <span className="text-gray-300">{getActionText(notif.type)}</span>
                   </div>
                   <span className="text-[10px] font-mono text-gray-400 shrink-0 mr-2">

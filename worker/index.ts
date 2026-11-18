@@ -699,10 +699,14 @@ export default {
         const notifications = (results || []).map((row: any) => ({
           id: row.id,
           userId: row.userId,
-          senderId: row.senderId,
-          senderName: row.senderName,
-          senderUsername: row.senderUsername || undefined,
-          senderAvatar: row.senderAvatar || undefined,
+          recipientId: row.userId,
+          sender: {
+            id: row.senderId || 'unknown',
+            name: row.senderName || 'عضو في GXE',
+            username: row.senderUsername || 'user',
+            avatar: row.senderAvatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(row.senderUsername || row.senderId || 'user')}`,
+            verified: false,
+          },
           type: row.type,
           content: row.content,
           postId: row.postId || undefined,

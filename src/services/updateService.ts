@@ -7,7 +7,8 @@
 
 import { Capacitor } from '@capacitor/core';
 
-export const CURRENT_APP_VERSION = '1.0.4';
+// Current release version of the installed app
+export const CURRENT_APP_VERSION = '1.0.5';
 
 export interface AppUpdateInfo {
   hasUpdate: boolean;
@@ -21,12 +22,14 @@ export interface AppUpdateInfo {
 }
 
 /**
- * Compare two semver strings (e.g. "1.0.5" vs "1.0.4")
- * Returns true if v2 > v1
+ * Compare two semver strings (e.g. "1.0.6" vs "1.0.5")
+ * Returns true ONLY if v2 > v1
  */
-function isNewerVersion(v1: string, v2: string): boolean {
+export function isNewerVersion(v1: string, v2: string): boolean {
   const clean1 = v1.replace(/^v/, '').trim();
   const clean2 = v2.replace(/^v/, '').trim();
+
+  if (clean1 === clean2) return false;
 
   const parts1 = clean1.split('.').map((n) => parseInt(n, 10) || 0);
   const parts2 = clean2.split('.').map((n) => parseInt(n, 10) || 0);
@@ -38,6 +41,20 @@ function isNewerVersion(v1: string, v2: string): boolean {
     if (p2 < p1) return false;
   }
   return false;
+}
+
+export function dismissUpdate(version: string) {
+  try {
+    sessionStorage.setItem('gxe_dismissed_update_' + version, 'true');
+  } catch {}
+}
+
+export function isUpdateDismissed(version: string): boolean {
+  try {
+    return sessionStorage.getItem('gxe_dismissed_update_' + version) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -68,6 +85,11 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo | null> {
       const latestVersion = tagName.replace(/^v/, '');
       const hasUpdate = isNewerVersion(CURRENT_APP_VERSION, latestVersion);
 
+      // If user already dismissed this specific version in this session, don't nag them
+      if (isUpdateDismissed(latestVersion)) {
+        return null;
+      }
+
       return {
         hasUpdate,
         currentVersion: CURRENT_APP_VERSION,
@@ -91,6 +113,10 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo | null> {
       const latestVersion = (data.version || '').replace(/^v/, '');
       const hasUpdate = isNewerVersion(CURRENT_APP_VERSION, latestVersion);
 
+      if (isUpdateDismissed(latestVersion)) {
+        return null;
+      }
+
       return {
         hasUpdate,
         currentVersion: CURRENT_APP_VERSION,
@@ -112,9 +138,19 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo | null> {
  * Trigger installation or download of update
  */
 export function triggerAppUpdate(update: AppUpdateInfo) {
+  // 1. Mark as accepted in session
+  dismissUpdate(update.latestVersion);
+
   if (Capacitor.isNativePlatform()) {
-    // On native Android: Open direct download link which launches Android package installer
-    window.location.href = update.apkDownloadUrl;
+    // On native Android: trigger browser/DownloadManager to fetch the APK file
+    const link = document.createElement('a');
+    link.href = update.apkDownloadUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.download = 'GXE-Social.apk';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } else {
     // On Web / PWA: Clear SW caches and reload with new assets
     try {

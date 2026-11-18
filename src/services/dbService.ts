@@ -579,6 +579,35 @@ export async function addComment(post: Post, author: User, text: string): Promis
   return newComment;
 }
 
+function normalizeNotification(n: any): AppNotification {
+  const rawSender = n.sender || {};
+  const senderId = rawSender.id || n.senderId || 'user';
+  const senderName = rawSender.name || n.senderName || 'عضو في GXE';
+  const senderUsername = rawSender.username || n.senderUsername || 'user';
+  const defaultAvatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(senderUsername || senderId)}`;
+  const senderAvatar = (rawSender.avatar || n.senderAvatar || defaultAvatar).includes('photo-1535713875002-d1d0cf377fde')
+    ? defaultAvatar
+    : (rawSender.avatar || n.senderAvatar || defaultAvatar);
+
+  return {
+    id: n.id || 'notif_' + Date.now(),
+    recipientId: n.recipientId || n.userId || '',
+    userId: n.userId,
+    sender: {
+      id: senderId,
+      name: senderName,
+      username: senderUsername,
+      avatar: senderAvatar,
+      verified: Boolean(rawSender.verified),
+    },
+    type: n.type || 'message',
+    content: n.content,
+    postId: n.postId,
+    createdAt: Number(n.createdAt) || Date.now(),
+    read: Boolean(n.read),
+  };
+}
+
 /**
  * Real-time subscription to Notifications (Instant 0ms Local + Cloudflare D1 Sync)
  */
@@ -586,7 +615,7 @@ export function subscribeToNotifications(
   userId: string,
   onUpdate: (notifs: AppNotification[]) => void
 ): Unsubscribe {
-  const initial = getLocalNotifications();
+  const initial = getLocalNotifications().map(normalizeNotification);
   onUpdate(initial);
 
   if (!localNotifListeners.has(userId)) {
@@ -599,10 +628,11 @@ export function subscribeToNotifications(
   const fetchCloudNotifs = async () => {
     if (!isSubscribed) return;
     try {
-      const cloudNotifs = await apiFetch<AppNotification[]>(`/api/notifications/${userId}`);
-      if (Array.isArray(cloudNotifs) && isSubscribed) {
-        setLocalNotifications(userId, cloudNotifs);
-        onUpdate(cloudNotifs);
+      const rawCloudNotifs = await apiFetch<any[]>(`/api/notifications/${userId}`);
+      if (Array.isArray(rawCloudNotifs) && isSubscribed) {
+        const normalized = rawCloudNotifs.map(normalizeNotification);
+        setLocalNotifications(userId, normalized);
+        onUpdate(normalized);
       }
     } catch (err) {
       console.warn('Cloudflare notifications sync notice:', err);
