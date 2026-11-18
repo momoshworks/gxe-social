@@ -25,11 +25,11 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
   useEffect(() => {
     if (!isVisible || !currentPop) return;
 
-    // Auto-dismiss quickly (2.5 seconds)
+    // Auto-dismiss after 3.2 seconds
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => setCurrentPop(null), 200); // wait for fade-out animation
-    }, 2500);
+      setTimeout(() => setCurrentPop(null), 250);
+    }, 3200);
 
     return () => clearTimeout(timer);
   }, [isVisible, currentPop]);
@@ -49,27 +49,27 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
         <img
           src={currentPop.icon}
           alt="Avatar"
-          className="w-10 h-10 rounded-full object-cover border border-blue-500/40 shadow-md shadow-blue-500/20 shrink-0"
+          className="w-10 h-10 rounded-xl object-cover border border-cyan-500/40 shadow-md shadow-cyan-500/20 shrink-0"
         />
       );
     }
     if (currentPop.title.includes('رسالة')) {
       return (
-        <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
-          <MessageCircle className="w-5 h-5 text-emerald-400" />
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center text-emerald-400 shadow-md shadow-emerald-500/20 shrink-0">
+          <MessageCircle className="w-5 h-5 fill-current/20" />
         </div>
       );
     }
-    if (currentPop.title.includes('إعجاب')) {
+    if (currentPop.title.includes('إعجاب') || currentPop.title.includes('تفاعل')) {
       return (
-        <div className="w-10 h-10 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center shrink-0">
-          <Heart className="w-5 h-5 text-rose-400 fill-current" />
+        <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/35 flex items-center justify-center text-rose-400 shadow-md shadow-rose-500/20 shrink-0">
+          <Heart className="w-5 h-5 fill-current" />
         </div>
       );
     }
     return (
-      <div className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0">
-        <img src={logoImg} alt="GXE" className="w-6 h-6 object-contain" />
+      <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/35 flex items-center justify-center text-cyan-400 shadow-md shadow-cyan-500/20 shrink-0">
+        <img src={logoImg} alt="GXE" className="w-6 h-6 object-contain drop-shadow" />
       </div>
     );
   };
@@ -77,30 +77,42 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
   return (
     <aside
       aria-label="إشعار فوري"
-      className={`fixed bottom-6 left-6 z-50 max-w-sm w-full transition-all duration-300 ease-out ${
-        isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95 pointer-events-none'
-      }`}
+      className="fixed top-3 inset-x-3 sm:top-5 sm:left-6 sm:right-auto sm:w-[380px] z-[80] pointer-events-none select-none transition-all duration-250 ease-out"
+      style={{ direction: 'rtl' }}
     >
       <div
+        className={`
+          pointer-events-auto cursor-pointer relative overflow-hidden rounded-2xl p-3.5
+          bg-[#070913]/95 border border-white/20 hover:border-cyan-400/50
+          backdrop-blur-3xl shadow-2xl shadow-cyan-500/10
+          flex items-center gap-3 transition-all duration-250 ease-out active:scale-98
+          ${isVisible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-8 opacity-0 scale-95'}
+        `}
         onClick={handleClick}
-        className="cursor-pointer bg-[#0A0C14]/95 backdrop-blur-2xl border border-white/15 hover:border-blue-500/50 rounded-2xl p-3.5 shadow-2xl shadow-black/90 flex items-center gap-3 relative overflow-hidden group select-none transition-all active:scale-98"
       >
-        {/* Animated Auto-dismiss countdown bar */}
-        <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 animate-pop-progress" />
+        {/* Specular top rim highlight */}
+        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
+
+        {/* Rapid countdown bar */}
+        <div
+          className="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 transition-all duration-[3200ms] ease-linear"
+          style={{ width: isVisible ? '0%' : '100%' }}
+        />
 
         {/* Sender / App Avatar */}
         {getPopIcon()}
 
         {/* Text Content */}
         <div className="flex-1 min-w-0 text-right">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-blue-400 animate-pulse" />
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-cyan-400 animate-pulse" />
               <span>GXE نبض فوري</span>
             </span>
+            <span className="text-[10px] font-mono text-slate-400">الآن ⚡</span>
           </div>
           <h4 className="font-bold text-sm text-white truncate">{currentPop.title}</h4>
-          <p className="text-xs text-slate-400 truncate leading-tight">{currentPop.body}</p>
+          <p className="text-xs text-slate-300 truncate leading-tight mt-0.5">{currentPop.body}</p>
         </div>
 
         {/* Dismiss Button */}
@@ -109,8 +121,8 @@ export const FloatingPopNotification: React.FC<FloatingPopNotificationProps> = (
             e.stopPropagation();
             setIsVisible(false);
           }}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0"
-          title="إغلاق الإشعار"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors shrink-0"
+          title="إغلاق"
         >
           <X className="w-4 h-4" />
         </button>

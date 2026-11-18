@@ -21,8 +21,10 @@ import { CreateEventModal } from './components/events/CreateEventModal';
 import { ReplyModal } from './components/modals/ReplyModal';
 import { ImageLightbox } from './components/modals/ImageLightbox';
 import { AuthModal } from './components/modals/AuthModal';
+import { UpdateModal } from './components/modals/UpdateModal';
 import { Toast, type ToastMessage } from './components/common/Toast';
 import { FloatingPopNotification } from './components/common/FloatingPopNotification';
+import { checkForAppUpdates, type AppUpdateInfo } from './services/updateService';
 
 export const App: React.FC = () => {
   // Always initialize from persisted local cache so profile is loaded in 0ms
@@ -34,6 +36,16 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('messages');
   const [selectedChatUser, setSelectedChatUser] = useState<User | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
+
+  useEffect(() => {
+    // Check for latest version from GitHub / Cloudflare on startup
+    checkForAppUpdates().then((update) => {
+      if (update && update.hasUpdate) {
+        setAvailableUpdate(update);
+      }
+    });
+  }, []);
 
   const prevNotifsCountRef = useRef<number>(0);
   const prevPostsCountRef = useRef<number>(0);
@@ -365,6 +377,13 @@ export const App: React.FC = () => {
             setCurrentUser(user);
           }}
           onNotify={addToast}
+        />
+      )}
+
+      {availableUpdate && (
+        <UpdateModal
+          update={availableUpdate}
+          onClose={() => setAvailableUpdate(null)}
         />
       )}
 

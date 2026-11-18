@@ -22,25 +22,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onLogout,
 }) => {
   const tabs = [
-    { id: 'messages', label: 'المحادثات', icon: MessageSquare, badge: undefined },
-    { id: 'events', label: 'الأحداث والمشاريع', icon: Zap, badge: undefined },
-    { id: 'community', label: 'المجتمع', icon: Users, badge: undefined },
-    { id: 'profile', label: 'الملف الشخصي', icon: UserIcon, badge: undefined },
+    { id: 'messages', label: 'المحادثات', icon: MessageSquare },
+    { id: 'events', label: 'الأحداث والمشاريع', icon: Zap },
+    { id: 'community', label: 'المجتمع', icon: Users },
+    { id: 'profile', label: 'الملف الشخصي', icon: UserIcon },
   ];
 
+  const isGuest = !currentUser.id || currentUser.id.startsWith('guest_');
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0A0E1A]/85 backdrop-blur-3xl px-4 sm:px-8 py-3">
-      <div className="w-full flex items-center justify-between gap-4">
-        {/* Left (Right in RTL): Brand Identity with Clean GXE Logo */}
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#070913]/90 backdrop-blur-3xl px-2 sm:px-6 py-1.5 sm:py-3 transition-all select-none">
+      <div className="w-full flex items-center justify-between gap-1.5 sm:gap-4">
+        {/* Brand Identity with Clean GXE Logo */}
         <div
           onClick={() => setActiveTab('messages')}
-          className="flex items-center gap-3 cursor-pointer group select-none shrink-0"
+          className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group shrink-0"
         >
           <div className="relative">
-            <div className="w-10 h-10 rounded-2xl bg-white/[0.08] border border-white/20 p-2 shadow-lg shadow-cyan-500/15 group-hover:scale-105 group-hover:border-cyan-400/50 transition-all flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/[0.08] border border-white/20 p-1 sm:p-2 shadow-lg shadow-cyan-500/15 group-hover:scale-105 group-hover:border-cyan-400/50 transition-all flex items-center justify-center">
               <img src={logoImg} alt="GXE" className="w-full h-full object-contain drop-shadow" />
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0A0E1A] shadow-sm shadow-emerald-500" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-emerald-500 rounded-full border-2 border-[#070913] shadow-sm shadow-emerald-500" />
           </div>
           <div className="hidden sm:flex flex-col leading-none">
             <div className="flex items-center gap-1.5">
@@ -54,7 +56,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         </div>
 
         {/* Center: Tactile Liquid Glass Navigation Switcher */}
-        <nav className="flex items-center gap-1 sm:gap-2 p-1.5 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+        <nav className="flex items-center gap-0.5 sm:gap-1.5 p-1 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md shrink-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -62,62 +64,54 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-3.5 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 ${
+                className={`relative px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-1.5 ${
                   isActive
                     ? 'bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25 border border-white/30'
                     : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                 }`}
+                title={tab.label}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
                 <span className="hidden md:inline">{tab.label}</span>
-                {tab.id === 'messages' && (
-                  <span className="md:hidden">محادثات</span>
-                )}
-                {tab.id === 'events' && (
-                  <span className="md:hidden">أحداث</span>
-                )}
-                {tab.badge && (
-                  <span className="w-4 h-4 rounded-full bg-cyan-500 text-black text-[10px] flex items-center justify-center font-bold">
-                    {tab.badge}
-                  </span>
-                )}
               </button>
             );
           })}
         </nav>
 
-        {/* Right (Left in RTL): User Status & Actions */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Notifications Button */}
+        {/* Right (Left in RTL): Notifications Bell, Profile, & Auth */}
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+          {/* Notifications Bell Button - ALWAYS PROMINENT ON MOBILE & DESKTOP */}
           <button
             onClick={() => setActiveTab('notifications')}
-            className={`relative p-2.5 rounded-xl border border-white/10 hover:border-white/20 transition-all ${
+            className={`relative p-2 sm:p-2.5 rounded-xl border transition-all ${
               activeTab === 'notifications'
-                ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
-                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-md shadow-cyan-500/20'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border-white/10'
             }`}
-            title="الإشعارات"
+            title="مركز التنبيهات"
+            aria-label="التنبيهات"
           >
             <Bell className="w-4 h-4" />
             {unreadNotifsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-cyan-500 text-black text-[10px] font-bold flex items-center justify-center border-2 border-[#08090C]">
-                {unreadNotifsCount}
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-cyan-400 text-black text-[9px] font-black flex items-center justify-center border border-[#070913] shadow-md shadow-cyan-400/40 animate-pulse">
+                {unreadNotifsCount > 9 ? '9+' : unreadNotifsCount}
               </span>
             )}
           </button>
 
-          {/* User Profile Pill */}
+          {/* User Profile Avatar Pill */}
           <div
             onClick={() => setActiveTab('profile')}
-            className="flex items-center gap-2.5 py-1 px-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer transition-all group"
+            className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer transition-all group shrink-0"
+            title={currentUser.name}
           >
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-7 h-7 rounded-lg object-cover border border-white/20 bg-slate-800"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg object-cover border border-white/20 bg-slate-800"
             />
             <div className="hidden lg:flex flex-col text-right leading-none">
-              <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition-colors truncate max-w-[110px]">
+              <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition-colors truncate max-w-[100px]">
                 {currentUser.name}
               </span>
               <span className="text-[10px] font-mono text-slate-400 mt-0.5" dir="ltr">
@@ -127,10 +121,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </div>
 
           {/* Auth Button */}
-          {currentUser.id && !currentUser.id.startsWith('guest_') ? (
+          {!isGuest ? (
             <button
               onClick={onLogout}
-              className="p-2.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/5 hover:border-rose-500/20 transition-all"
+              className="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 transition-all shrink-0"
               title="تسجيل الخروج"
             >
               <LogOut className="w-4 h-4" />
@@ -138,10 +132,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 border border-white/20 flex items-center gap-1.5 transition-all"
+              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20 border border-white/20 flex items-center gap-1.5 transition-all shrink-0"
+              title="دخول / حساب جديد"
             >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>دخول / حساب جديد</span>
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">دخول</span>
             </button>
           )}
         </div>

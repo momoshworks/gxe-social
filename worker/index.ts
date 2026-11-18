@@ -66,6 +66,23 @@ export default {
         });
       }
 
+      // 1.1 App Version & GitHub Auto-Update Endpoint
+      if (url.pathname === '/api/version' && request.method === 'GET') {
+        return json({
+          version: '1.0.5',
+          title: 'تحديث GXE v1.0.5 - الأيقونة الرسمية والإشعارات الفورية',
+          releaseNotes: `✨ ما الجديد في تحديث v1.0.5:
+• اعتماد وتثبيت أيقونة GXE الهندسية الرسمية عالية الدقة لجميع أجهزة أندرويد.
+• إضافة صوت التنبيه المخصص لجميع المحادثات والتفاعلات.
+• دعم إشعارات النظام المباشرة (OS & Native Android Notifications).
+• تصغير البار العلوي على الموبايل لظهور جرس التنبيهات بوضوح تام.
+• نظام التحديث التلقائي الفوري عبر مستودع GitHub الرسمي.`,
+          apkUrl: 'https://github.com/momoshworks/gxe-social/releases/latest/download/GXE-Social.apk',
+          githubReleaseUrl: 'https://github.com/momoshworks/gxe-social/releases/latest',
+          timestamp: Date.now(),
+        });
+      }
+
       // 2. Feed Posts (الهري)
       if (url.pathname === '/api/posts' && request.method === 'GET') {
         const query = `

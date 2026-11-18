@@ -1,128 +1,159 @@
 /**
- * Ultra-Fast Sound & Apple iPhone-style Push Notifications Service for GXE
- * Features:
- * - Authentic Apple iPhone Tri-tone Chime synthesis via Web Audio API
- * - Auto-dismissing System Notifications in the OS Notification Bar (auto-closes after 5 seconds)
- * - In-App Floating Pop Notification event bus
- * - Custom Vibration Patterns
+ * GXE High-Fidelity Sound & System Notification Service
+ * - Plays user's custom notification sound (/notification.mp3)
+ * - Native Android System Notifications via @capacitor/local-notifications
+ * - Modern Web OS Notifications via Service Worker & Notification API
+ * - In-app Heads-up Pop Notifications
  */
 
-function playIPhoneNote(ctx: AudioContext, freq: number, startTime: number, duration: number, volume: number = 0.22) {
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
+
+// Cached Audio instance for 0ms latency sound playback
+let notificationAudio: HTMLAudioElement | null = null;
+let isChannelCreated = false;
+
+function getNotificationAudio(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!notificationAudio) {
+    notificationAudio = new Audio('/notification.mp3');
+    notificationAudio.preload = 'auto';
+  }
+  return notificationAudio;
+}
+
+// Pre-unlock audio on first user touch / click
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    const audio = getNotificationAudio();
+    if (audio) {
+      audio.load();
+    }
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('touchstart', unlockAudio);
+  };
+  window.addEventListener('click', unlockAudio, { once: true });
+  window.addEventListener('touchstart', unlockAudio, { once: true });
+}
+
+/**
+ * Initialize native Android notification channel with custom sound & high priority
+ */
+async function ensureAndroidChannel() {
+  if (isChannelCreated || !Capacitor.isNativePlatform()) return;
   try {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    // Fundamental clear sine tone
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(freq, startTime);
-
-    // Subtle glassy harmonic for Apple's signature crystal marimba warmth
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(freq * 2, startTime);
-
-    // Instant attack, smooth exponential bell decay
-    gain.gain.setValueAtTime(0.0001, startTime);
-    gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.005);
-    gain.gain.exponentialRampToValueAtTime(volume * 0.45, startTime + 0.07);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc1.start(startTime);
-    osc2.start(startTime);
-    osc1.stop(startTime + duration);
-    osc2.stop(startTime + duration);
-  } catch {
-    // ignore
+    await LocalNotifications.createChannel({
+      id: 'gxe_alerts',
+      name: 'تنبيهات منصة GXE',
+      description: 'إشعارات الرسائل والتفاعلات والأحداث الفورية',
+      importance: 5, // High priority (heads-up notification)
+      visibility: 1, // Public on lock screen
+      sound: 'notification.mp3',
+      vibration: true,
+      lights: true,
+      lightColor: '#70D6FF',
+    });
+    isChannelCreated = true;
+  } catch (err) {
+    console.warn('Could not create Android notification channel:', err);
   }
 }
 
 /**
- * Synthesizes the authentic Apple iPhone Tri-tone notification chime:
- * 1. G#5 (830.61 Hz)
- * 2. B5  (987.77 Hz)
- * 3. E6  (1318.51 Hz - iconic lingering crystal bell)
+ * Play user's authentic custom notification chime
  */
 export function playNotificationSound() {
+  if (typeof window === 'undefined') return;
   try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const now = ctx.currentTime;
-
-    // Note 1: G#5
-    playIPhoneNote(ctx, 830.61, now, 0.12, 0.22);
-    // Note 2: B5
-    playIPhoneNote(ctx, 987.77, now + 0.085, 0.12, 0.25);
-    // Note 3: E6 (high bell resolution)
-    playIPhoneNote(ctx, 1318.51, now + 0.17, 0.45, 0.28);
+    const audio = getNotificationAudio();
+    if (audio) {
+      audio.currentTime = 0;
+      audio.volume = 0.9;
+      const promise = audio.play();
+      if (promise) {
+        promise.catch(() => {
+          // Fallback if blocked
+        });
+      }
+    }
   } catch {
-    // Audio autoplay restrictions before first user interaction
+    // Ignore audio autoplay restrictions
   }
 }
 
 /**
- * Trigger mobile device vibration
+ * Trigger device vibration
  */
 export function vibrateDevice(pattern: number[] = [150, 75, 150]) {
   try {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate(pattern);
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 /**
- * Request notification permissions from browser/OS
+ * Request notification permissions from OS / Browser
  */
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (typeof window === 'undefined' || !('Notification' in window)) return false;
-  try {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
-  } catch {
-    return false;
+  if (typeof window === 'undefined') return false;
+
+  // 1. Android Native Platform
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const status = await LocalNotifications.requestPermissions();
+      if (status.display === 'granted') {
+        await ensureAndroidChannel();
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
+
+  // 2. Web Browser
+  if ('Notification' in window) {
+    try {
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
 }
 
 export function isNotificationGranted(): boolean {
-  return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
+  if (typeof window === 'undefined') return false;
+  if (Capacitor.isNativePlatform()) {
+    return true; // We request permissions via LocalNotifications
+  }
+  return 'Notification' in window && Notification.permission === 'granted';
 }
 
-/**
- * Get absolute URL to app logo
- */
 function getAppLogoUrl(): string {
-  try {
-    const base = import.meta.env.BASE_URL || '/';
-    return new URL(base + 'logo.png', window.location.origin).href;
-  } catch {
-    return '/logo.png';
-  }
+  if (typeof window === 'undefined') return '/logo.png';
+  return window.location.origin + '/logo.png';
 }
 
 export interface ShowNotificationOptions {
   body: string;
-  tag?: string;
   icon?: string;
-  badge?: string;
   image?: string;
-  data?: any;
+  tag?: string;
   silent?: boolean;
   autoCloseMs?: number;
+  data?: any;
 }
 
-// In-app pop notification listeners
 export interface PopNotificationPayload {
   id: string;
   title: string;
   body: string;
   icon?: string;
+  timestamp: number;
   data?: any;
 }
 
@@ -137,45 +168,80 @@ export function subscribeToPopNotifications(callback: PopListener): () => void {
 export function triggerInAppPop(payload: Omit<PopNotificationPayload, 'id'>) {
   const item: PopNotificationPayload = {
     ...payload,
-    id: 'pop_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+    id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
   };
-  popListeners.forEach((cb) => {
-    try {
-      cb(item);
-    } catch (e) {
-      console.warn('Pop listener error:', e);
-    }
-  });
+  popListeners.forEach((fn) => fn(item));
 }
 
 /**
- * Apple iOS-style Native System Notification (System Notification Bar & Drawer)
- * Automatically closes after autoCloseMs (default: 5000ms)
+ * Display a Native System Notification (in OS Notification Tray / Heads-up)
+ * plus the internal in-app floating banner
  */
-export function showBrowserNotification(
+export async function showBrowserNotification(
   title: string,
   optionsOrBody: string | ShowNotificationOptions
 ) {
   const options: ShowNotificationOptions =
     typeof optionsOrBody === 'string' ? { body: optionsOrBody } : optionsOrBody;
 
-  // 1. Play authentic iPhone chime
+  // 1. Play custom notification sound
   if (!options.silent) {
     playNotificationSound();
   }
 
-  // 2. Vibrate phone
+  // 2. Vibrate device
   vibrateDevice([150, 75, 150]);
 
-  // 3. Trigger In-App Dynamic Floating Notification Banner
+  // 3. Trigger In-App Heads-up Floating Banner
   triggerInAppPop({
     title,
     body: options.body,
     icon: options.icon,
     data: options.data,
+    timestamp: Date.now(),
   });
 
-  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+  // 4. Native Android System Notification via Capacitor
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await ensureAndroidChannel();
+      const notifId = Math.floor(Math.random() * 2147483647);
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: notifId,
+            title,
+            body: options.body,
+            channelId: 'gxe_alerts',
+            smallIcon: 'ic_launcher_round',
+            largeIcon: 'ic_launcher',
+            sound: 'notification.mp3',
+            extra: options.data,
+          },
+        ],
+      });
+      return;
+    } catch (nativeErr) {
+      console.warn('Native local notification dispatch error:', nativeErr);
+    }
+  }
+
+  // 5. Web Browser OS Notification
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return;
+  }
+
+  // If permission is default, prompt user
+  if (Notification.permission === 'default') {
+    try {
+      const p = await Notification.requestPermission();
+      if (p !== 'granted') return;
+    } catch {
+      return;
+    }
+  }
+
+  if (Notification.permission !== 'granted') {
     return;
   }
 
@@ -194,7 +260,6 @@ export function showBrowserNotification(
     data: options.data,
   };
 
-  // 4. Display via ServiceWorkerRegistration with auto-close after 5s
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
       .then((registration) => {
@@ -203,25 +268,19 @@ export function showBrowserNotification(
           try {
             const active = await registration.getNotifications({ tag });
             active.forEach((n) => n.close());
-          } catch {
-            // ignore
-          }
+          } catch {}
         }, autoCloseMs);
       })
       .catch(() => {
         try {
           const n = new Notification(title, notifOptions);
           setTimeout(() => n.close(), autoCloseMs);
-        } catch (e) {
-          console.warn('Native notification fallback failed:', e);
-        }
+        } catch {}
       });
   } else {
     try {
       const n = new Notification(title, notifOptions);
       setTimeout(() => n.close(), autoCloseMs);
-    } catch (e) {
-      console.warn('Native notification failed:', e);
-    }
+    } catch {}
   }
 }
