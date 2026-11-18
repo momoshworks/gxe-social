@@ -1,7 +1,8 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.tsx';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Register Service Worker for PWA, Auto-Updates, and WhatsApp-style Push Notifications
 if ('serviceWorker' in navigator) {
@@ -10,16 +11,28 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register(swPath)
       .then((registration) => {
-        console.log('⚡ PWA Service Worker registered successfully at:', swPath, registration.scope);
+        // If an update is found, auto update
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          if (installingWorker) {
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                installingWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            };
+          }
+        };
       })
       .catch((err) => {
-        console.warn('⚠️ Service Worker registration failed:', err);
+        console.warn('⚠️ Service Worker notice:', err);
       });
   });
 }
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
-)
+);

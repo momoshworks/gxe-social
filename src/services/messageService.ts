@@ -1,4 +1,4 @@
-import type { DirectMessage, User, Post, Unsubscribe } from '../types';
+import type { DirectMessage, User, Unsubscribe } from '../types';
 import { addNotification } from './dbService';
 import { apiFetch } from './cloudflare';
 
@@ -219,7 +219,7 @@ export function subscribeToChat(
 }
 
 /**
- * Harvest known users from local storage cache AND post authors so member list is never blank
+ * Harvest known users from local storage cache
  */
 export function getKnownCommunityUsers(): User[] {
   const usersMap = new Map<string, User>();
@@ -229,18 +229,13 @@ export function getKnownCommunityUsers(): User[] {
     if (cached) {
       const list: User[] = JSON.parse(cached);
       list.forEach((u) => {
-        if (u && u.id) usersMap.set(u.id, u);
-      });
-    }
-  } catch {}
-
-  try {
-    const rawPosts = localStorage.getItem('gxe_real_posts');
-    if (rawPosts) {
-      const posts: Post[] = JSON.parse(rawPosts);
-      posts.forEach((p) => {
-        if (p.author && p.author.id && !usersMap.has(p.author.id)) {
-          usersMap.set(p.author.id, p.author);
+        if (u && u.id && !u.id.startsWith('guest_user_default')) {
+          // Sanitize any stale demo photos
+          const cleanAvatar =
+            u.avatar && !u.avatar.includes('photo-1535713875002-d1d0cf377fde')
+              ? u.avatar
+              : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(u.username || u.id)}`;
+          usersMap.set(u.id, { ...u, avatar: cleanAvatar });
         }
       });
     }
@@ -250,7 +245,7 @@ export function getKnownCommunityUsers(): User[] {
 }
 
 /**
- * Subscribe to all registered community members in real-time
+ * Subscribe to all registered community members in real-time from Cloudflare D1
  */
 export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Unsubscribe {
   const initial = getKnownCommunityUsers();
@@ -263,14 +258,19 @@ export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Un
     try {
       const cloudUsers = await apiFetch<User[]>('/api/users');
       if (Array.isArray(cloudUsers) && isSubscribed) {
-        const mergedMap = new Map<string, User>();
-        getKnownCommunityUsers().forEach((u) => mergedMap.set(u.id, u));
-        cloudUsers.forEach((u) => mergedMap.set(u.id, u));
-        const mergedList = Array.from(mergedMap.values());
+        // Sanitize any stale avatars in cloud response
+        const cleanList = cloudUsers.map((u) => ({
+          ...u,
+          avatar:
+            u.avatar && !u.avatar.includes('photo-1535713875002-d1d0cf377fde')
+              ? u.avatar
+              : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(u.username || u.id)}`,
+        }));
+
         try {
-          localStorage.setItem('gxe_community_users_cache', JSON.stringify(mergedList));
+          localStorage.setItem('gxe_community_users_cache', JSON.stringify(cleanList));
         } catch {}
-        onUpdate(mergedList);
+        onUpdate(cleanList);
       }
     } catch (err) {
       console.warn('Cloudflare community users sync notice:', err);
@@ -283,7 +283,7 @@ export function subscribeToCommunityUsers(onUpdate: (users: User[]) => void): Un
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       fetchUsers();
     }
-  }, 5000);
+  }, 4000);
 
   return () => {
     isSubscribed = false;

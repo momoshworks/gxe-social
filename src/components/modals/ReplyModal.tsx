@@ -82,17 +82,17 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
           {/* Original Event Summary */}
           <div className="relative flex gap-3.5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
             <img
-              src={post.author.avatar}
-              alt={post.author.name}
+              src={post.author?.avatar}
+              alt={post.author?.name}
               className="w-10 h-10 rounded-2xl object-cover shrink-0 border border-white/20"
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white text-sm">{post.author.name}</span>
-                {post.author.verified && (
-                  <span className="text-blue-400 text-xs font-bold">✓</span>
+                <span className="font-bold text-white text-sm">{post.author?.name}</span>
+                {post.author?.verified && (
+                  <span className="text-cyan-400 text-xs font-bold">✓</span>
                 )}
-                <span className="text-xs font-mono text-gray-400">@{post.author.username}</span>
+                <span className="text-xs font-mono text-gray-400">@{post.author?.username}</span>
               </div>
               <p className="mt-1 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
                 {post.content}
@@ -112,15 +112,15 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
                   className="flex gap-3 p-3.5 rounded-2xl bg-white/[0.04] border border-white/10"
                 >
                   <img
-                    src={comment.author.avatar}
-                    alt={comment.author.name}
+                    src={comment.author?.avatar}
+                    alt={comment.author?.name}
                     className="w-8 h-8 rounded-xl object-cover shrink-0 border border-white/20"
                   />
                   <div className="flex-1 min-w-0 text-xs">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-white">{comment.author.name}</span>
-                        <span className="text-gray-400 font-mono">@{comment.author.username}</span>
+                        <span className="font-bold text-white">{comment.author?.name}</span>
+                        <span className="text-gray-400 font-mono">@{comment.author?.username}</span>
                       </div>
                       <span className="text-[10px] font-mono text-gray-400">
                         {new Date(comment.createdAt).toLocaleTimeString([], {

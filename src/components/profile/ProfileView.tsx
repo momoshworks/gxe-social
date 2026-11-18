@@ -38,10 +38,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     setIsFollowModalOpen(true);
   };
 
-  // Filter posts
-  const myEvents = posts.filter((p) => p.author.id === currentUser.id);
-  const myMedia = posts.filter((p) => p.author.id === currentUser.id && p.mediaUrl);
-  const myLiked = posts.filter((p) => p.likedBy?.includes(currentUser.id));
+  // Filter posts safely
+  const myEvents = posts.filter((p) => p?.author?.id === currentUser?.id);
+  const myMedia = posts.filter((p) => p?.author?.id === currentUser?.id && p?.mediaUrl);
+  const myLiked = posts.filter((p) => p?.likedBy?.includes(currentUser?.id));
 
   const displayedEvents =
     activeTab === 'events' ? myEvents : activeTab === 'media' ? myMedia : myLiked;

@@ -39,7 +39,7 @@ export const PostCard: React.FC<PostCardProps> = React.memo(({
   const isLiked = post.likedBy?.includes(currentUser.id) ?? false;
   const isReposted = post.repostedBy?.includes(currentUser.id) ?? false;
   const isBookmarked = post.bookmarkedBy?.includes(currentUser.id) ?? false;
-  const isOwner = post.author.id === currentUser.id;
+  const isOwner = post.author?.id === currentUser?.id;
 
   // Format relative timestamp
   const formatTimeAgo = (timestamp: number) => {

@@ -154,6 +154,10 @@ function mergePosts(cloudPosts: Post[], localPosts: Post[]): Post[] {
   // Add cloud posts, deduplicating any accidental double-submits within 15 seconds
   const cleanCloudPosts: Post[] = [];
   cloudPosts.forEach((cp) => {
+    // Sanitize author avatar if it has old demo photo
+    if (cp.author?.avatar && cp.author.avatar.includes('photo-1535713875002-d1d0cf377fde')) {
+      cp.author.avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(cp.author.username || cp.author.id)}`;
+    }
     const isDouble = cleanCloudPosts.some(
       (existing) =>
         existing.author.id === cp.author.id &&

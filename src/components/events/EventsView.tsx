@@ -147,8 +147,8 @@ export const EventsView: React.FC<EventsViewProps> = ({
       <div className="flex flex-col gap-5">
         {posts.length > 0 ? (
           posts.map((post, idx) => {
-            const isLiked = post.likedBy?.includes(currentUser.id) ?? false;
-            const isOwner = post.author.id === currentUser.id;
+            const isLiked = post.likedBy?.includes(currentUser?.id) ?? false;
+            const isOwner = post.author?.id === currentUser?.id;
             const indexStr = String(idx + 1).padStart(2, '0');
 
             return (

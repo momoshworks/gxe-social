@@ -160,12 +160,12 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
   });
 
   return (
-    <div className="flex-1 w-full h-full flex flex-col md:flex-row overflow-hidden bg-[#07080B] relative">
+    <div className="flex-1 w-full h-full flex flex-col md:flex-row overflow-hidden bg-[#070A14] relative">
       {/* =========================================================================
           RIGHT COLUMN (in RTL): Conversations & Contacts List (Edge-to-Edge)
          ========================================================================= */}
       <aside
-        className={`w-full md:w-80 lg:w-[380px] flex flex-col border-l border-white/10 bg-[#0A0C14]/90 backdrop-blur-2xl shrink-0 z-20 ${
+        className={`w-full md:w-80 lg:w-[380px] flex flex-col border-l border-white/10 bg-[#0A0E1A]/90 backdrop-blur-3xl shrink-0 z-20 ${
           selectedUser ? 'hidden md:flex' : 'flex'
         }`}
       >
@@ -173,15 +173,15 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
         <div className="p-4 border-b border-white/10 space-y-3 bg-white/[0.02]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-md shadow-blue-500/10">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-md shadow-cyan-500/15">
                 <MessageCircle className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-base font-extrabold text-white leading-none">المحادثات المباشرة</h2>
-                <span className="text-[11px] text-slate-400 mt-1 block">تشفير فوري سحابي</span>
+                <span className="text-[11px] text-slate-400 mt-1 block">تشفير سحابي فوري ⚡</span>
               </div>
             </div>
-            <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold">
+            <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 font-bold">
               {filteredUsers.length} أعضاء
             </span>
           </div>
@@ -194,7 +194,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="بحث في الأعضاء والمحادثات..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-2.5 pr-10 pl-4 text-xs text-white placeholder-slate-400 outline-none focus:border-blue-500/50 transition-colors"
+              className="w-full bg-white/[0.06] border border-white/15 rounded-2xl py-2.5 pr-10 pl-4 text-xs text-white placeholder-slate-400 outline-none focus:border-cyan-400/60 transition-colors"
             />
             {searchTerm && (
               <button
@@ -208,7 +208,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
         </div>
 
         {/* Contacts / Chats Stream */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 divide-y-0">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1.5 divide-y-0">
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => {
               const isSelected = selectedUser?.id === user.id;
@@ -218,17 +218,17 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                   onClick={() => setSelectedUser(user)}
                   className={`p-3 px-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer transition-all duration-200 select-none ${
                     isSelected
-                      ? 'bg-gradient-to-r from-blue-600/25 via-blue-600/15 to-transparent border border-blue-500/40 border-r-4 border-r-blue-500 shadow-lg shadow-blue-500/10'
-                      : 'hover:bg-white/[0.04] border border-transparent'
+                      ? 'bg-gradient-to-r from-cyan-600/25 via-blue-600/15 to-transparent border border-cyan-400/50 border-r-4 border-r-cyan-400 shadow-lg shadow-cyan-500/10'
+                      : 'hover:bg-white/[0.05] border border-transparent'
                   }`}
                 >
                   <div className="relative shrink-0">
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-12 h-12 rounded-2xl object-cover border border-white/20 shadow-md"
+                      className="w-12 h-12 rounded-2xl object-cover border border-white/20 bg-slate-800 shadow-md"
                     />
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#07080B]" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#0A0E1A] shadow-sm shadow-emerald-500" />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -238,7 +238,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                           {user.name}
                         </span>
                         {user.verified && (
-                          <span className="text-blue-400 text-xs font-bold shrink-0">✓</span>
+                          <span className="text-cyan-400 text-xs font-bold shrink-0">✓</span>
                         )}
                       </div>
                       <span className="text-[10px] font-mono text-slate-400 shrink-0" dir="ltr">
@@ -254,10 +254,15 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               );
             })
           ) : (
-            <div className="p-8 text-center text-xs text-slate-400 space-y-2">
-              <p>{q ? 'لا يوجد أعضاء يطابقون بحثك' : 'لا يوجد أعضاء آخرين مسجلين بعد.'}</p>
-              <p className="text-[11px] text-slate-500">
-                جميع المحادثات مشفرة وتتم مزامنتها سحابياً بسرعة فائقة.
+            <div className="p-8 text-center text-xs text-slate-400 space-y-3 my-auto">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center mx-auto text-slate-400">
+                <MessageCircle className="w-6 h-6" />
+              </div>
+              <p className="font-bold text-slate-200">
+                {q ? 'لا يوجد أعضاء يطابقون بحثك' : 'لا يوجد أعضاء آخرين مسجلين بعد'}
+              </p>
+              <p className="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+                جميع المحادثات حية ومشفرة وتتم مزامنتها مع سحابة Cloudflare D1 بدون تأخير.
               </p>
             </div>
           )}
@@ -268,14 +273,14 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
           LEFT COLUMN (in RTL): Active Direct Messaging Room
          ========================================================================= */}
       <main
-        className={`flex-1 flex flex-col h-full bg-gradient-to-b from-[#08090E] via-[#090B13] to-[#07080B] relative overflow-hidden ${
+        className={`flex-1 flex flex-col h-full bg-gradient-to-b from-[#080C18] via-[#0A0E1F] to-[#070A14] relative overflow-hidden ${
           !selectedUser ? 'hidden md:flex' : 'flex'
         }`}
       >
         {selectedUser ? (
           <>
             {/* Active Chat Header */}
-            <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between bg-[#0A0C14]/80 backdrop-blur-xl shrink-0 z-10">
+            <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between bg-[#0A0E1A]/85 backdrop-blur-2xl shrink-0 z-10">
               <div className="flex items-center gap-3.5">
                 {/* Mobile Back Button */}
                 <button
@@ -290,9 +295,9 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                   <img
                     src={selectedUser.avatar}
                     alt={selectedUser.name}
-                    className="w-10 h-10 rounded-xl object-cover border border-white/20 shadow"
+                    className="w-10 h-10 rounded-xl object-cover border border-white/20 bg-slate-800 shadow"
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#07080B]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0A0E1A] shadow-sm shadow-emerald-500" />
                 </div>
 
                 <div className="flex flex-col">
@@ -301,7 +306,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                       {selectedUser.name}
                     </span>
                     {selectedUser.verified && (
-                      <span className="text-[10px] text-blue-400 font-bold">✓</span>
+                      <span className="text-[10px] text-cyan-400 font-bold">✓</span>
                     )}
                   </div>
                   <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5 mt-0.5">
@@ -506,14 +511,14 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="اكتب رسالة مشفرة..."
-                className="flex-1 bg-white/[0.06] border border-white/15 focus:border-blue-500/60 rounded-2xl py-3 px-5 text-sm text-white placeholder-slate-400 outline-none transition-all shadow-inner"
+                className="flex-1 bg-white/[0.06] border border-white/15 focus:border-cyan-400/80 rounded-2xl py-3 px-5 text-sm text-white placeholder-slate-400 outline-none transition-all shadow-inner"
               />
 
               {/* Send Button */}
               <button
                 type="submit"
                 disabled={(!inputText.trim() && !selectedFile) || isSending}
-                className="glass-btn-primary p-3 w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
+                className="glass-btn-primary p-3 w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/30"
               >
                 <Send className="w-5 h-5 stroke-[2.5]" />
               </button>
@@ -522,13 +527,13 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
         ) : (
           /* No Chat Selected Placeholder */
           <div className="h-full flex flex-col items-center justify-center p-8 text-center gap-4 text-slate-400 select-none">
-            <div className="w-20 h-20 rounded-3xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-xl shadow-blue-500/10">
+            <div className="w-20 h-20 rounded-3xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-xl shadow-cyan-500/15">
               <MessageCircle className="w-10 h-10" />
             </div>
             <div className="space-y-1.5 max-w-md">
               <h3 className="text-xl font-extrabold text-white">مرحباً بك في محادثات GXE الحية</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                اختر أحد أعضاء المجتمع من القائمة على اليمين لبدء محادثة مشفرة ومباشرة مع حفظ فوري لجميع الرسائل والوسائط.
+                اختر أحد أعضاء المجتمع من القائمة على اليمين لبدء محادثة مشفرة ومباشرة مع حفظ فوري لجميع الرسائل والوسائط في Cloudflare D1.
               </p>
             </div>
           </div>

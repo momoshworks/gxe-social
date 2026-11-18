@@ -5,35 +5,36 @@
    ============================================================================ */
 
 :root {
-  --bg-primary: #08090C;
-  --bg-surface: rgba(16, 18, 26, 0.75);
-  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-primary: #06080F;
+  --bg-surface: rgba(14, 18, 30, 0.85);
+  --bg-card: rgba(255, 255, 255, 0.06);
   --text-primary: #F8FAFC;
   --text-muted: #94A3B8;
   --text-faint: #64748B;
   
-  /* Refined Tech Palette (Apple Royal Blue + Ice Sky) */
-  --accent: #2563EB;
-  --accent-hover: #1D4ED8;
-  --accent-light: #60A5FA;
-  --accent-glow: rgba(37, 99, 235, 0.35);
+  /* Vibrant Liquid Glass Palette (Ice Cyan + Electric Indigo + Aurora Pink) */
+  --accent: #00F0FF;
+  --accent-cyan: #70D6FF;
+  --accent-pink: #FF70A6;
+  --accent-indigo: #6366F1;
+  --accent-glow: rgba(0, 240, 255, 0.35);
 
-  --border-color: rgba(255, 255, 255, 0.09);
-  --border-highlight: rgba(255, 255, 255, 0.28);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-highlight: rgba(255, 255, 255, 0.35);
   --glass-blur: 24px;
   --radius-card: 20px;
   --radius-pill: 9999px;
 
-  /* iPhone Tactile Rim Reflections */
-  --ios-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%);
-  --ios-glass-border: rgba(255, 255, 255, 0.09);
-  --ios-glass-rim: inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
-  --ios-glass-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.35);
+  /* Specular Rim Reflections */
+  --ios-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --ios-glass-border: rgba(255, 255, 255, 0.12);
+  --ios-glass-rim: inset 0 1px 1px 0 rgba(255, 255, 255, 0.32), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
+  --ios-glass-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.75), 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 @layer base {
   * {
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   body {
@@ -55,26 +56,27 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.18);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.28);
+    background: rgba(112, 214, 255, 0.4);
   }
 }
 
-/* Subtle, Elegant Ambient Lighting (Not loud neon) */
+/* Radiant Ambient Aurora (Ice Cyan, Electric Indigo, Aurora Pink) */
 .aurora-mesh {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.4;
+  opacity: 0.75;
   background: 
-    radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.12) 0%, transparent 55%),
-    radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 85%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
-  filter: blur(90px);
+    radial-gradient(circle at 12% 15%, rgba(112, 214, 255, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 88% 80%, rgba(255, 112, 166, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.16) 0%, transparent 55%),
+    radial-gradient(circle at 75% 15%, rgba(14, 165, 233, 0.15) 0%, transparent 40%);
+  filter: blur(85px);
 }
 
 /* Liquid Glass Panels */
@@ -89,23 +91,23 @@
 }
 
 .glass-panel-subtle {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 16px;
 }
 
-/* Tactile iPhone Glass Primary Button (Crisp Apple Blue with top light reflection) */
+/* Tactile Liquid Glass Primary Button (Cyan into Indigo Gradient) */
 .glass-btn-primary {
-  background: linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%);
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 50%, #4F46E5 100%);
   color: #FFFFFF;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.65);
-  box-shadow: 0 6px 20px -4px rgba(37, 99, 235, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 20px -4px rgba(37, 99, 235, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   display: inline-flex;
@@ -114,8 +116,8 @@
 }
 .glass-btn-primary:hover {
   transform: translateY(-1.5px);
-  background: linear-gradient(180deg, #60A5FA 0%, #2563EB 100%);
-  box-shadow: 0 10px 26px -4px rgba(37, 99, 235, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.65);
+  background: linear-gradient(135deg, #38BDF8 0%, #3B82F6 50%, #6366F1 100%);
+  box-shadow: 0 10px 28px -4px rgba(56, 189, 248, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.7);
 }
 .glass-btn-primary:active {
   transform: translateY(1px) scale(0.98);
@@ -123,13 +125,13 @@
 
 /* Secondary Frosted Glass Button */
 .glass-btn-secondary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-  color: #E2E8F0;
-  font-weight: 500;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
+  color: #F1F5F9;
+  font-weight: 600;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.32);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.25);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   display: inline-flex;
@@ -137,9 +139,9 @@
   justify-content: center;
 }
 .glass-btn-secondary:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.06) 100%);
   transform: translateY(-1.5px);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(112, 214, 255, 0.4);
   color: #FFFFFF;
 }
 .glass-btn-secondary:active {

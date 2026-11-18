@@ -30,6 +30,13 @@ function parseJsonArray(str: any): string[] {
   }
 }
 
+async function hashPassword(password: string): Promise<string> {
+  const enc = new TextEncoder().encode(password);
+  const hashBuf = await crypto.subtle.digest('SHA-256', enc);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  return hashArr.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -312,6 +319,168 @@ export default {
       }
 
       // 4. Users & Authentication
+      // 4a. User Registration with D1 Credentials
+      if (url.pathname === '/api/auth/register' && request.method === 'POST') {
+        const body: any = await request.json();
+        const name = (body.name || '').trim();
+        const rawUsername = (body.username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        const email = (body.email || '').trim().toLowerCase();
+        const password = body.password || '';
+
+        if (name.length < 2) {
+          return json({ error: 'الاسم يجب أن يحتوي على حرفين على الأقل' }, 400);
+        }
+        if (rawUsername.length < 3) {
+          return json({ error: 'اسم المستخدم يجب أن يتكون من 3 أحرف أو أرقام على الأقل' }, 400);
+        }
+        if (password.length < 6) {
+          return json({ error: 'كلمة المرور يجب أن لا تقل عن 6 أحرف أو أرقام' }, 400);
+        }
+
+        // Check if username already taken
+        const existingUsername: any = await env.DB.prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?)')
+          .bind(rawUsername)
+          .first();
+        if (existingUsername) {
+          return json({ error: 'اسم المستخدم هذا مسجّل بالفعل، اختر اسماً آخر' }, 400);
+        }
+
+        // Check if email already taken
+        if (email) {
+          const existingEmail: any = await env.DB.prepare('SELECT id FROM users WHERE LOWER(email) = LOWER(?)')
+            .bind(email)
+            .first();
+          if (existingEmail) {
+            return json({ error: 'هذا البريد الإلكتروني مسجّل بالفعل بحساب آخر' }, 400);
+          }
+        }
+
+        const id = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        const avatar = body.avatar && body.avatar.trim().length > 0
+          ? body.avatar.trim()
+          : `https://api.dicebear.com/7.x/identicon/svg?seed=${rawUsername}`;
+        const bio = (body.bio || 'عضو موثّق في مجتمع GXE 🚀').trim();
+        const passwordHash = await hashPassword(password);
+        const now = Date.now();
+
+        await env.DB.prepare(`
+          INSERT INTO users (
+            id, name, username, email, passwordHash, avatar, bio, verified, followersCount, followingCount, createdAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, 0, ?)
+        `).bind(id, name, rawUsername, email || null, passwordHash, avatar, bio, now).run();
+
+        return json({
+          success: true,
+          user: {
+            id,
+            name,
+            username: rawUsername,
+            email: email || undefined,
+            avatar,
+            bio,
+            verified: true,
+            followersCount: 0,
+            followingCount: 0,
+            following: [],
+            followers: [],
+            createdAt: now,
+          },
+        });
+      }
+
+      // 4b. User Login with Username or Email & Password
+      if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+        const body: any = await request.json();
+        const identifier = (body.identifier || '').trim().toLowerCase();
+        const password = body.password || '';
+
+        if (!identifier || !password) {
+          return json({ error: 'يرجى إدخال اسم المستخدم أو البريد الإلكتروني وكلمة المرور' }, 400);
+        }
+
+        const userRow: any = await env.DB.prepare(`
+          SELECT * FROM users 
+          WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) 
+          LIMIT 1
+        `).bind(identifier, identifier).first();
+
+        if (!userRow) {
+          return json({ error: 'الحساب غير موجود، تأكد من اسم المستخدم أو البريد' }, 401);
+        }
+
+        // Verify password
+        if (userRow.passwordHash) {
+          const hashedInput = await hashPassword(password);
+          if (hashedInput !== userRow.passwordHash) {
+            return json({ error: 'كلمة المرور غير صحيحة' }, 401);
+          }
+        }
+
+        // Fetch user follows
+        const { results: followingRows } = await env.DB.prepare('SELECT followingId FROM follows WHERE followerId = ?').bind(userRow.id).all();
+        const { results: followerRows } = await env.DB.prepare('SELECT followerId FROM follows WHERE followingId = ?').bind(userRow.id).all();
+        const following = (followingRows || []).map((r: any) => r.followingId);
+        const followers = (followerRows || []).map((r: any) => r.followerId);
+
+        return json({
+          success: true,
+          user: {
+            id: userRow.id,
+            name: userRow.name,
+            username: userRow.username,
+            email: userRow.email || undefined,
+            avatar: userRow.avatar,
+            coverUrl: userRow.coverUrl || undefined,
+            bio: userRow.bio || undefined,
+            verified: Boolean(userRow.verified),
+            following,
+            followers,
+            followingCount: following.length || Number(userRow.followingCount) || 0,
+            followersCount: followers.length || Number(userRow.followersCount) || 0,
+            createdAt: Number(userRow.createdAt),
+          },
+        });
+      }
+
+      // 4c. Quick Join / Guest Registration
+      if (url.pathname === '/api/auth/quick-join' && request.method === 'POST') {
+        const body: any = await request.json();
+        const name = (body.name || '').trim() || 'عضو GXE';
+        const baseUsername = name.replace(/\s+/g, '_').toLowerCase().replace(/[^a-z0-9_]/g, '') || 'user';
+        const randomSuffix = Math.floor(100 + Math.random() * 900);
+        const username = `${baseUsername.substring(0, 15)}_${randomSuffix}`;
+        const id = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        const avatar = body.avatar && body.avatar.trim().length > 0
+          ? body.avatar.trim()
+          : `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`;
+        const bio = (body.bio || 'عضو جديد في مجتمع GXE 🚀').trim();
+        const now = Date.now();
+
+        await env.DB.prepare(`
+          INSERT INTO users (
+            id, name, username, avatar, bio, verified, followersCount, followingCount, createdAt
+          ) VALUES (?, ?, ?, ?, ?, 1, 0, 0, ?)
+        `).bind(id, name, username, avatar, bio, now).run();
+
+        return json({
+          success: true,
+          user: {
+            id,
+            name,
+            username,
+            avatar,
+            bio,
+            verified: true,
+            followersCount: 0,
+            followingCount: 0,
+            following: [],
+            followers: [],
+            createdAt: now,
+          },
+        });
+      }
+
+      // 4d. Fetch Community Users List
       if (url.pathname === '/api/users' && request.method === 'GET') {
         const { results } = await env.DB.prepare('SELECT id, name, username, avatar, bio, verified, followersCount, followingCount, createdAt FROM users ORDER BY createdAt DESC LIMIT 50').all();
         const users = (results || []).map((row: any) => ({

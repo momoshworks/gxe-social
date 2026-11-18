@@ -62,7 +62,7 @@ export const App: React.FC = () => {
 
   // Real-time synchronization of current user document in Cloudflare D1
   useEffect(() => {
-    if (!currentUser.id) return;
+    if (!currentUser.id || currentUser.id.startsWith('guest_')) return;
     const unsub = subscribeToUserDoc(currentUser.id, (updates) => {
       setCurrentUser((prev) => {
         const merged: User = {
@@ -91,12 +91,13 @@ export const App: React.FC = () => {
         const latestPost = updatedPosts[0];
         if (
           latestPost &&
+          latestPost.author &&
           latestPost.author.id !== currentUser.id &&
           (currentUser.following || []).includes(latestPost.author.id)
         ) {
           playNotificationSound();
-          showBrowserNotification(`⚡ ${latestPost.author.name} أطلق حدثاً جديداً`, {
-            body: latestPost.content.substring(0, 90),
+          showBrowserNotification(`⚡ ${latestPost.author.name || 'عضو'} أطلق حدثاً جديداً`, {
+            body: (latestPost.content || '').substring(0, 90),
             icon: latestPost.author.avatar,
             tag: `gxe-event-${latestPost.id}`,
             data: { tab: 'events', postId: latestPost.id },
@@ -111,47 +112,48 @@ export const App: React.FC = () => {
 
   // Real-time notifications
   useEffect(() => {
-    if (!currentUser.id) return;
+    if (!currentUser.id || currentUser.id.startsWith('guest_')) return;
     const unsub = subscribeToNotifications(currentUser.id, (loadedNotifs) => {
       if (loadedNotifs.length > prevNotifsCountRef.current) {
         const newest = loadedNotifs[0];
         if (newest && !newest.read) {
           playNotificationSound();
 
-          let notifTitle = `منصة GXE: ${newest.sender.name}`;
-          let notifBody = `${newest.sender.name} أرسل إشعاراً جديداً`;
+          const senderName = newest.sender?.name || 'عضو في GXE';
+          let notifTitle = `منصة GXE: ${senderName}`;
+          let notifBody = `${senderName} أرسل إشعاراً جديداً`;
           let notifTab = 'notifications';
 
           switch (newest.type) {
             case 'message':
-              notifTitle = `💬 رسالة من ${newest.sender.name}`;
+              notifTitle = `💬 رسالة من ${senderName}`;
               notifBody = newest.content || 'أرسل لك رسالة خاصة جديدة';
               notifTab = 'messages';
               break;
             case 'like':
-              notifTitle = `❤️ إعجاب جديد من ${newest.sender.name}`;
+              notifTitle = `❤️ إعجاب جديد من ${senderName}`;
               notifBody = `أعجب بحدثك: "${(newest.content || '').substring(0, 45)}"`;
               notifTab = 'events';
               break;
             case 'comment':
-              notifTitle = `💬 هاري جديد من ${newest.sender.name}`;
+              notifTitle = `💬 تعليق جديد من ${senderName}`;
               notifBody = `علق على حدثك: "${(newest.content || '').substring(0, 60)}"`;
               notifTab = 'events';
               break;
             case 'follow':
               notifTitle = `✨ متابع جديد على GXE!`;
-              notifBody = `بدأ ${newest.sender.name} (@${newest.sender.username}) بمتابعتك الآن.`;
+              notifBody = `بدأ ${senderName} بمتابعتك الآن.`;
               notifTab = 'profile';
               break;
           }
 
           showBrowserNotification(notifTitle, {
             body: notifBody,
-            icon: newest.sender.avatar,
-            tag: `gxe-${newest.type}-${newest.sender.id}`,
+            icon: newest.sender?.avatar,
+            tag: `gxe-${newest.type}-${newest.sender?.id || 'sys'}`,
             data: {
               tab: notifTab,
-              senderId: newest.sender.id,
+              senderId: newest.sender?.id,
               postId: newest.postId,
             },
           });
