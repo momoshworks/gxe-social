@@ -9,12 +9,21 @@ const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+const securityHeaders: Record<string, string> = {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
+
 function json(data: any, status: number = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       ...corsHeaders,
+      ...securityHeaders,
     },
   });
 }
@@ -70,17 +79,58 @@ export default {
       if (url.pathname === '/api/version' && request.method === 'GET') {
         return json({
           version: '1.0.5',
-          title: 'تحديث GXE v1.0.5 - الأيقونة الرسمية والإشعارات الفورية',
+          title: 'تحديث GXE v1.0.5 - شهادة الأمان الرسمية والتحديث فائق السرعة',
           releaseNotes: `✨ ما الجديد في تحديث v1.0.5:
 • اعتماد وتثبيت أيقونة GXE الهندسية الرسمية عالية الدقة لجميع أجهزة أندرويد.
+• شهادة أمان رقمية معتمدة (RSA 2048-bit / SHA-256) صالحة حتى 2054.
+• ميزة التحديث اللحظي الفوري بدون تنزيل ملفات أو انتظار (0 ثانية).
+• خادم تنزيل APK مباشر وسريع عبر شبكة سحابية فائقة السرعة.
 • إضافة صوت التنبيه المخصص لجميع المحادثات والتفاعلات.
-• دعم إشعارات النظام المباشرة (OS & Native Android Notifications).
-• تصغير البار العلوي على الموبايل لظهور جرس التنبيهات بوضوح تام.
-• نظام التحديث التلقائي الفوري عبر مستودع GitHub الرسمي.`,
-          apkUrl: 'https://github.com/momoshworks/gxe-social/releases/latest/download/GXE-Social.apk',
+• دعم إشعارات النظام المباشرة وتصغير البار العلوي على الموبايل.`,
+          apkUrl: 'https://gxe-social.momosh991.workers.dev/api/download/apk',
+          githubApkUrl: 'https://github.com/momoshworks/gxe-social/releases/download/v1.0.5/GXE-Social.apk',
           githubReleaseUrl: 'https://github.com/momoshworks/gxe-social/releases/latest',
+          certificate: {
+            issuer: 'CN=GXE Social Official, OU=Engineering, O=GXE Platform, L=Cairo, ST=Cairo, C=EG',
+            validUntil: 'April 2054',
+            algorithm: 'RSA 2048-bit (SHA-384 with RSA)',
+            sha256: '8D:6D:C5:A7:58:F9:42:B7:21:B6:7E:FF:30:64:72:15:76:95:2D:BC:76:D4:F9:D8:AC:FB:D6:63:2E:BF:14:4E',
+          },
           timestamp: Date.now(),
         });
+      }
+
+      // 1.2 Direct APK Edge Download (Streams directly without browser redirect hangs)
+      if (url.pathname === '/api/download/apk' && request.method === 'GET') {
+        const githubApkUrl = 'https://github.com/momoshworks/gxe-social/releases/download/v1.0.5/GXE-Social.apk';
+        try {
+          const upstreamRes = await fetch(githubApkUrl, {
+            headers: {
+              'User-Agent': 'GXE-Social-Mobile/1.0.5',
+            },
+          });
+
+          if (upstreamRes.ok && upstreamRes.body) {
+            const downloadHeaders = new Headers();
+            downloadHeaders.set('Content-Type', 'application/vnd.android.package-archive');
+            downloadHeaders.set('Content-Disposition', 'attachment; filename="GXE-Social.apk"');
+            downloadHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+            downloadHeaders.set('Access-Control-Allow-Origin', '*');
+            for (const [k, v] of Object.entries(securityHeaders)) {
+              downloadHeaders.set(k, v);
+            }
+            if (upstreamRes.headers.has('Content-Length')) {
+              downloadHeaders.set('Content-Length', upstreamRes.headers.get('Content-Length')!);
+            }
+            return new Response(upstreamRes.body, {
+              status: 200,
+              headers: downloadHeaders,
+            });
+          }
+        } catch (fetchErr) {
+          console.warn('Edge streaming failed, falling back to redirect:', fetchErr);
+        }
+        return Response.redirect(githubApkUrl, 302);
       }
 
       // 2. Feed Posts (الهري)

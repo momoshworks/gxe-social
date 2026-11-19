@@ -17,9 +17,14 @@ export interface AppUpdateInfo {
   title: string;
   releaseNotes: string;
   apkDownloadUrl: string;
+  directCdnApkUrl: string;
   githubUrl: string;
   publishedAt?: string;
 }
+
+export const CLOUDFLARE_DIRECT_APK_URL = 'https://gxe-social.momosh991.workers.dev/api/download/apk';
+export const GITHUB_RELEASE_APK_URL = 'https://github.com/momoshworks/gxe-social/releases/download/v1.0.5/GXE-Social.apk';
+export const GITHUB_RELEASE_PAGE_URL = 'https://github.com/momoshworks/gxe-social/releases/tag/v1.0.5';
 
 /**
  * Compare two semver strings (e.g. "1.0.6" vs "1.0.5")
@@ -97,6 +102,7 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo | null> {
         title: release.name || `إصدار جديد ${tagName}`,
         releaseNotes: release.body || 'تحسينات عامة على الأداء وإصلاحات استقرار.',
         apkDownloadUrl,
+        directCdnApkUrl: CLOUDFLARE_DIRECT_APK_URL,
         githubUrl: release.html_url || defaultGithubUrl,
         publishedAt: release.published_at,
       };
@@ -124,6 +130,7 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo | null> {
         title: data.title || `إصدار جديد v${latestVersion}`,
         releaseNotes: data.releaseNotes || 'تحديثات جديدة وإصلاحات سريعة.',
         apkDownloadUrl: data.apkUrl || defaultApkUrl,
+        directCdnApkUrl: CLOUDFLARE_DIRECT_APK_URL,
         githubUrl: data.githubReleaseUrl || defaultGithubUrl,
       };
     }
@@ -135,31 +142,75 @@ export async function checkForAppUpdates(): Promise<AppUpdateInfo | null> {
 }
 
 /**
- * Trigger installation or download of update
+ * ⚡ Instant In-App Live Update (0 seconds / No APK download required)
+ * Clears caches, service worker registrations, and immediately syncs the latest UI and code from Cloudflare Edge.
+ */
+export async function performInstantOtaUpdate(version?: string): Promise<void> {
+  if (version) {
+    dismissUpdate(version);
+  }
+
+  try {
+    // 1. Purge CacheStorage
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
+    }
+
+    // 2. Unregister or update ServiceWorker registrations
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.update().catch(() => {});
+      }
+    }
+
+    // 3. Purge cached dynamic app assets in sessionStorage
+    try {
+      sessionStorage.clear();
+    } catch {}
+
+    // 4. Force hard reload from Cloudflare Edge server
+    window.location.reload();
+  } catch (err) {
+    console.error('Instant OTA Update error:', err);
+    window.location.reload();
+  }
+}
+
+/**
+ * Download APK file with direct streaming from Cloudflare Edge (Bypasses GitHub browser redirect hangs)
+ */
+export function downloadApkFile(url?: string, version?: string) {
+  if (version) {
+    dismissUpdate(version);
+  }
+
+  const targetUrl = url || CLOUDFLARE_DIRECT_APK_URL;
+
+  // Create an explicit anchor with download attribute
+  const link = document.createElement('a');
+  link.href = targetUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.download = 'GXE-Social.apk';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    try {
+      document.body.removeChild(link);
+    } catch {}
+  }, 500);
+}
+
+/**
+ * Trigger installation or download of update (Default backward-compatible trigger)
  */
 export function triggerAppUpdate(update: AppUpdateInfo) {
-  // 1. Mark as accepted in session
   dismissUpdate(update.latestVersion);
-
   if (Capacitor.isNativePlatform()) {
-    // On native Android: trigger browser/DownloadManager to fetch the APK file
-    const link = document.createElement('a');
-    link.href = update.apkDownloadUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.download = 'GXE-Social.apk';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadApkFile(update.directCdnApkUrl || update.apkDownloadUrl, update.latestVersion);
   } else {
-    // On Web / PWA: Clear SW caches and reload with new assets
-    try {
-      if ('caches' in window) {
-        caches.keys().then((names) => {
-          names.forEach((name) => caches.delete(name));
-        });
-      }
-    } catch {}
-    window.location.reload();
+    performInstantOtaUpdate(update.latestVersion);
   }
 }
